@@ -56,16 +56,13 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
         (res.error.position, res.error.unexpected, @[expected])
       )
 
-# TODO: does applying an empty error string does any good, since it never
-# fails?
 func pure*[T](x: T): Parser[T] {.inline.} =
   ## Create a `Parser` that always return `x`, but consumes nothing. As such,
   ## it never fails.
   ##
   ## This is required in both applicative and monadic parsers.
-  return (func(_: Stream): ParseResult[T] =
+  return func(_: Stream): ParseResult[T] =
     ParseResult[T].ok(x)
-  ) <?> ""
 
 func `>>=`*[S,T](parser0: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.
@@ -84,10 +81,7 @@ func `>>=`*[S,T](parser0: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
 
 # `satisfy` could be defined in terms of anyChar, but I find the following
 # implementation simpler.
-# TODO: we're going with the implementation in the first Parsec paper and not
-# inserting any error message here. This makes some sense, as no message would
-# be really useful.
-func satisfy(predicate: char -> bool): Parser[char] {.inline.} =
+func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char] {.inline.} =
   ## Create a `Parser` that consumes a single character if it satisfies a
   ## given predicate.
   ##
@@ -95,7 +89,7 @@ func satisfy(predicate: char -> bool): Parser[char] {.inline.} =
   return proc(s: Stream): ParseResult[char] =
     if s.atEnd:
       ParseResult[char].err(
-        (s.getPosition, "end of input", @[])
+        (s.getPosition, "end of input", expected)
       )
     else:
       let c = s.readChar
@@ -104,11 +98,13 @@ func satisfy(predicate: char -> bool): Parser[char] {.inline.} =
       else:
         s.setPosition(s.getPosition - 1)
         ParseResult[char].err(
-          (s.getPosition, $c, @[])
+          (s.getPosition, $c, expected)
         )
 
-# TODO: <|> has different semantics from Parsec's <|>. This might be
-# either good or bad. But the current implementation is definitely useful.
+# TODO: <|> has different semantics from Parsec's <|> w.r.t. backtracking.
+# This might be either good or bad. But the current implementation is
+# definitely useful.
+# TODO: implement choice as well and ensure a full alternative instance.
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
   return func(s: Stream): ParseResult[T] =
@@ -160,20 +156,22 @@ func ch*(c: char): Parser[char] {.inline.} =
   ##
   ## This function is called `char` in Parsec, but this conflicts with the
   ## type `char` in Nim.
-  satisfy((d: char) => d == c) <?> $c
+  satisfy((d: char) => d == c, @[$c])
 
 let letter*: Parser[char] =
-  satisfy(isAlphaAscii) <?> "letter"
+  satisfy(isAlphaAscii, @["letter"])
   ## A `Parser` that consumes any letter.
 
 let digit*: Parser[char] =
-  satisfy(isDigit) <?> "digit"
+  satisfy(isDigit, @["digit"])
   ## A `Parser` that consumes any digit.
 
 func `>>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   parser0 >>= ((_: S) => parser1)
 
-# TODO: this currently always returns an empty string if successful!
+# TODO: this currently always returns an empty string if successful, which is
+# not good!
+# TODO: furthermore, I would like to avoid recursiveness here as well.
 func str*(s: string): Parser[string] {.inline.} =
   ## Build a `Parser` that consumes a given string if present.
   ##
@@ -196,7 +194,7 @@ func many1*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
     (many1(parser) <|> pure(newSeq[T]())) >>= proc(xs: seq[T]): Parser[seq[T]] =
       pure(x & xs)
 
-# TODO: this is apparently not part of the standard
+# TODO: this is apparently not part of the standard Parsec
 let identifier*: Parser[seq[char]] =
   many1(letter <|> digit <|> ch('_'))
   ## A `Parser` that consumes a common identifier, made of letters, digits
@@ -222,7 +220,7 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
 # TODO: an old definition explicitly checked for end of input. This is
 # now done in satisfy. Check Parsec's current implementation.
 let anyChar*: Parser[char] =
-  satisfy((_: char) => true) <?> "any character"
+  satisfy((_: char) => true, @["any character"])
 
 # TODO: implement `many`, `between` and the probably others suggested in
 # <http://theorangeduck.com/page/you-could-have-invented-parser-combinators>.

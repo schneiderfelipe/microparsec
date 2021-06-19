@@ -125,6 +125,8 @@ suite "parser algebra":
     # Poor man's currying and a lot of help to the compiler
     # TODO: hey, something like true currying would make things like that much
     # nicer!
+    # TODO: or we could use lift and varargs for greater good! Choose what is
+    # simpler and nimbler!
     let selector: char -> (char -> (char -> (char, char))) = func(x: char): auto =
       return func(y: char): auto =
         return func(z: char): auto =
