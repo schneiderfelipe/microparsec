@@ -5,6 +5,7 @@
 #
 # To run these tests, simply execute `nimble test`.
 
+import strutils
 import unittest
 
 import petametre
@@ -130,6 +131,46 @@ suite "basic character parsers":
     check q.parse("{1hello") == ParseResult[string].err (position: 2, unexpected: "h", expected: @["}"])
     check q.parse("{12hello") == ParseResult[string].err (position: 3, unexpected: "h", expected: @["}"])
     check q.parse("") == ParseResult[string].err (position: 0, unexpected: "end of input", expected: @["{"])
+
+  test "sepBy":
+    let p = sepBy(many1(digit), ch(','))
+    check p.parse("1,2,3,4") == ParseResult[seq[seq[char]]].ok @[@['1'], @['2'], @['3'], @['4']]
+    check p.parse("11,22") == ParseResult[seq[seq[char]]].ok @[@['1', '1'], @['2', '2']]
+    # Observe how forgiving is that.
+    check p.parse("11 ,22") == ParseResult[seq[seq[char]]].ok @[@['1', '1']]
+    check p.parse("11, 22") == ParseResult[seq[seq[char]]].ok @[@['1', '1']]
+    check p.parse("11,,22") == ParseResult[seq[seq[char]]].ok @[@['1', '1']]
+    check p.parse(",") == ParseResult[seq[seq[char]]].ok newSeq[seq[char]]()
+    check p.parse("") == ParseResult[seq[seq[char]]].ok newSeq[seq[char]]()
+    # TODO: seq[seq[char]] is impossible to scale well. Although it is OK to
+    # have seq[char] in place of string in many situations, higher order
+    # containers start to scale bad. Solution: ensure we get
+    #
+    #         `seq[T]` for `T`,
+    #     but `string` for `char`.
+    #
+    # check p.parse("1,2,3,4") == ParseResult[seq[string]].ok @["1", "2", "3", "4"]
+    # check p.parse("") == ParseResult[seq[string]].err (position: 0, unexpected: "end of input", expected: @["{"])
+
+  test "sepBy1":
+    let p = sepBy1(many1(digit), ch(','))
+    check p.parse("1,2,3,4") == ParseResult[seq[seq[char]]].ok @[@['1'], @['2'], @['3'], @['4']]
+    check p.parse("11,22") == ParseResult[seq[seq[char]]].ok @[@['1', '1'], @['2', '2']]
+    # Observe how forgiving is that.
+    check p.parse("11 ,22") == ParseResult[seq[seq[char]]].ok @[@['1', '1']]
+    check p.parse("11, 22") == ParseResult[seq[seq[char]]].ok @[@['1', '1']]
+    check p.parse("11,,22") == ParseResult[seq[seq[char]]].ok @[@['1', '1']]
+    check p.parse(",") == ParseResult[seq[seq[char]]].err (position: 0, unexpected: ",", expected: @["digit"])
+    check p.parse("") == ParseResult[seq[seq[char]]].err (position: 0, unexpected: "end of input", expected: @["digit"])
+    # TODO: seq[seq[char]] is impossible to scale well. Although it is OK to
+    # have seq[char] in place of string in many situations, higher order
+    # containers start to scale bad. Solution: ensure we get
+    #
+    #         `seq[T]` for `T`,
+    #     but `string` for `char`.
+    #
+    # check p.parse("1,2,3,4") == ParseResult[seq[string]].ok @["1", "2", "3", "4"]
+    # check p.parse("") == ParseResult[seq[string]].err (position: 0, unexpected: "end of input", expected: @["{"])
 
 suite "parsing utilities":
   test "parse":

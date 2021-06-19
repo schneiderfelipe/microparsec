@@ -32,15 +32,19 @@ func many1*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
     )
   )
 
-func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
-  ## Create a `Parser` that parses a sequence of *zero* or more occurrences of
-  ## `parser`, separated by `separator`.
-  discard
-
 func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
   ## Create a `Parser` that parses a sequence of *one* or more occurrences of
   ## `parser`, separated by `separator`.
-  discard
+  parser >>= (
+    (x: T) => many(separator >> parser) >>= (
+      (xs: seq[T]) => pure(x & xs)
+    )
+  )
+
+func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
+  ## Create a `Parser` that parses a sequence of *zero* or more occurrences of
+  ## `parser`, separated by `separator`.
+  sepBy1(parser, separator) <|> pure[seq[T]](@[])
 
 # TODO: sepEndBy1
 # TODO: sepEndBy
