@@ -49,3 +49,16 @@ func pure*[T](x: T): Parser[T] {.inline.} =
   ## This is required in both applicative and monadic parsers.
   return func(_: Stream): ParseResult[T] =
     ParseResult[T].ok(x)
+
+func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
+  ## Build a `Parser` that applies another `Parser` *zero* or more times and
+  ## returns a sequence of the parsed values.
+  return func(s: Stream): ParseResult[seq[T]] =
+    var
+      elems: seq[T]
+      res = parser(s)
+    if res.isOk:
+      elems.add(res.get)
+      while (res = parser(s); res.isOk):
+        elems.add(res.get)
+    ParseResult[seq[T]].ok(elems)

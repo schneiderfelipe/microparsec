@@ -24,7 +24,7 @@ export ok, err, `==`
 import petametre/combinators
 import petametre/primitives
 import petametre/types
-export many1, `<|>`, `pure`, `eof`, `>>=`
+export many, many1, `<|>`, `pure`, `eof`, `>>=`
 
 func identity*[T](x: T): T =
   ## Identity function.

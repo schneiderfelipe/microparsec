@@ -40,15 +40,29 @@ suite "basic character parsers":
     check p.parse("ello") == ParseResult[string].err (position: 0, unexpected: "e", expected: @["hello"])
     check p.parse("") == ParseResult[string].err (position: 0, unexpected: "end of input", expected: @["hello"])
 
-  # TODO: it's more useful to frame the results of many1 as strings
-  # TODO: insert more examples where the results are other than characters.
+  # TODO: insert more examples where the results are other than
+  # string/characters.
+  test "many":
+    let p = many(ch('h'))
+    # Both `seq[char]` and `string` work! Very useful!
+    check p.parse("hello") == ParseResult[seq[char]].ok @['h']
+    check p.parse("hello") == ParseResult[string].ok "h"
+    check p.parse("hhello") == ParseResult[string].ok "hh"
+    check p.parse("hhhello") == ParseResult[string].ok "hhh"
+    check p.parse("ello") == ParseResult[string].ok ""
+    check p.parse("") == ParseResult[string].ok ""
+
+  # TODO: insert more examples where the results are other than
+  # string/characters.
   test "many1":
     let p = many1(ch('h'))
+    # Both `seq[char]` and `string` work! Very useful!
     check p.parse("hello") == ParseResult[seq[char]].ok @['h']
-    check p.parse("hhello") == ParseResult[seq[char]].ok @['h', 'h']
-    check p.parse("hhhello") == ParseResult[seq[char]].ok @['h', 'h', 'h']
-    check p.parse("ello") == ParseResult[seq[char]].err (position: 0, unexpected: "e", expected: @["h"])
-    check p.parse("") == ParseResult[seq[char]].err (position: 0, unexpected: "end of input", expected: @["h"])
+    check p.parse("hello") == ParseResult[string].ok "h"
+    check p.parse("hhello") == ParseResult[string].ok "hh"
+    check p.parse("hhhello") == ParseResult[string].ok "hhh"
+    check p.parse("ello") == ParseResult[string].err (position: 0, unexpected: "e", expected: @["h"])
+    check p.parse("") == ParseResult[string].err (position: 0, unexpected: "end of input", expected: @["h"])
 
   # TODO: identifier is apparently not part of the standard Parsec and may be deleted in the future.
   test "identifier":
