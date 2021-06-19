@@ -17,7 +17,9 @@ import types
 func between*[R,S,T](open: Parser[R], parser: Parser[T], close: Parser[S]): Parser[T] {.inline.} =
   ## Create a `Parser` that parses `open`, followed by `parser` and then
   ## `close`, returning the value given by `parser`.
-  discard
+  open >> parser >>= (
+    (x: T) => close >> pure(x)
+  )
 
 # TODO: skipMany1
 

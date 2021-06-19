@@ -21,8 +21,8 @@ suite "basic character parsers":
 
   test "letter":
     let p = letter
-    check p.parse("1hello") == ParseResult[char].err (position: 0, unexpected: "1", expected: @["letter"])
     check p.parse("ello") == ParseResult[char].ok 'e'
+    check p.parse("1hello") == ParseResult[char].err (position: 0, unexpected: "1", expected: @["letter"])
     check p.parse("") == ParseResult[char].err (position: 0, unexpected: "end of input", expected: @["letter"])
 
   test "digit":
@@ -95,16 +95,41 @@ suite "basic character parsers":
 
   test "eof":
     let p = eof
-    check p.parse("hello") == ParseResult[void].err (position: 0, unexpected: "h", expected: @["end of input"])
     # Can't compare `ok`s due to a bug, see <https://github.com/arnetheduck/nim-result/issues/16>.
     # check p.parse("") == ParseResult[void].ok
     check p.parse("").isOk
+    check p.parse("hello") == ParseResult[void].err (position: 0, unexpected: "h", expected: @["end of input"])
 
   test "ch":
     let p = ch('h')
     check p.parse("hello") == ParseResult[char].ok 'h'
     check p.parse("ello") == ParseResult[char].err (position: 0, unexpected: "e", expected: @["h"])
     check p.parse("") == ParseResult[char].err (position: 0, unexpected: "end of input", expected: @["h"])
+
+  test "between":
+    # Observe that the error message bypasses the possibility of more digits.
+    # Think about the error messages as a set of tokens that would be required
+    # to make the input valid.
+    let p = between(ch('{'), many(digit), ch('}'))
+    check p.parse("{12}hello") == ParseResult[string].ok "12"
+    check p.parse("{}hello") == ParseResult[string].ok ""
+    check p.parse("hello") == ParseResult[string].err (position: 0, unexpected: "h", expected: @["{"])
+    check p.parse("{hello") == ParseResult[string].err (position: 1, unexpected: "h", expected: @["}"])
+    check p.parse("{1hello") == ParseResult[string].err (position: 2, unexpected: "h", expected: @["}"])
+    check p.parse("{12hello") == ParseResult[string].err (position: 3, unexpected: "h", expected: @["}"])
+    check p.parse("") == ParseResult[string].err (position: 0, unexpected: "end of input", expected: @["{"])
+
+    # Observe that the error message bypasses the possibility of more digits.
+    # Think about the error messages as a set of tokens that would be required
+    # to make the input valid.
+    let q = between(ch('{'), many1(digit), ch('}'))
+    check q.parse("{12}hello") == ParseResult[string].ok "12"
+    check q.parse("{}hello") == ParseResult[string].err (position: 1, unexpected: "}", expected: @["digit"])
+    check q.parse("hello") == ParseResult[string].err (position: 0, unexpected: "h", expected: @["{"])
+    check q.parse("{hello") == ParseResult[string].err (position: 1, unexpected: "h", expected: @["digit"])
+    check q.parse("{1hello") == ParseResult[string].err (position: 2, unexpected: "h", expected: @["}"])
+    check q.parse("{12hello") == ParseResult[string].err (position: 3, unexpected: "h", expected: @["}"])
+    check q.parse("") == ParseResult[string].err (position: 0, unexpected: "end of input", expected: @["{"])
 
 suite "parsing utilities":
   test "parse":
@@ -190,10 +215,10 @@ suite "parser combinators":
     # TODO: default errors for this combinator are not good enough.
     let p = (ch('h') >> ch('e')) *> ch('l') >> ch('l')
     check p.parse("hello") == ParseResult[char].ok 'l'
+    check p.parse("llo") == ParseResult[char].ok 'l'
     check p.parse("heklo") == ParseResult[char].err (position: 2, unexpected: "k", expected: @["l"])
     # check p.parse("ello") == ParseResult[char].err (position: 0, unexpected: "e", expected: @["h", "l"])
     # check p.parse("hllo") == ParseResult[char].err (position: 0, unexpected: "l", expected: @["e"])
-    check p.parse("llo") == ParseResult[char].ok 'l'
     # check p.parse("") == ParseResult[char].err (position: 0, unexpected: "end of input", expected: @["h", "l"])
 
   test "<*":

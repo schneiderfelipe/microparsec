@@ -24,7 +24,7 @@ export ok, err, isOk, `==`
 import petametre/combinators
 import petametre/primitives
 import petametre/types
-export many, many1, `<|>`, `pure`, `eof`, `>>=`
+export between, many, many1, `<|>`, `pure`, `eof`, `>>=`
 
 func identity*[T](x: T): T =
   ## Identity function.
@@ -98,9 +98,6 @@ let letter*: Parser[char] =
 let digit*: Parser[char] =
   satisfy(isDigit, @["digit"])
   ## A `Parser` that consumes any digit.
-
-func `>>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  parser0 >>= ((_: S) => parser1)
 
 # TODO: this currently always returns an empty string if successful, which is
 # not good!

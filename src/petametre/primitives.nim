@@ -78,3 +78,6 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
       ParseResult[T].err(
         (res.error.position, res.error.unexpected, @[expected])
       )
+
+func `>>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
+  parser0 >>= ((_: S) => parser1)
