@@ -63,20 +63,21 @@ func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inli
 
 # TODO: tricky combinator
 # TODO: tests
-proc anyToken(s: Stream): ParseResult[char] {.inline.} =
+proc anyToken(s: Stream): ParseResult[char] {.inline.} =  # TODO: bad return!
   ## A `Parser` that accepts any kind of token and returns the accepted token.
   ParseResult[char].ok(s.readChar)
 
 # TODO: tricky combinator
-proc eof*(s: Stream): ParseResult[void] =
+proc eof*(s: Stream): (ParseResult[void], ParseState) =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
-  if s.atEnd:
+  result[0] = if s.atEnd:
     ParseResult[void].ok()
   else:
     ParseResult[void].err(
-      (s.getPosition, $s.peekChar, @["end of input"])
+      ($s.peekChar, @["end of input"])
     )
+  result[1] = s.getPosition
 
 # TODO: tricky combinator
 # TODO: tests
@@ -84,16 +85,17 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## A `Parser` that only succeeds when `parser` fails. This parser does not
   ## consume any input. This parser can be used to implement the
   ## "longest match" rule.
-  return func(s: Stream): ParseResult[void] =
+  return func(s: Stream): (ParseResult[void], ParseState) =
     let position = s.getPosition
-    let res = parser(s)
-    s.setPosition(position)
-    if res.isErr:
+    let (res, state) = parser(s)
+    result[0] = if res.isErr:
       ParseResult[void].ok()
     else:
       ParseResult[void].err(
-        (s.getPosition, $res.get, @[])
+        ($res.get, @[])
       )
+    s.setPosition(position)
+    result[1] = position
 
 # TODO: manyTill  # TODO: tricky combinator
 # TODO: lookAhead  # TODO: tricky combinator

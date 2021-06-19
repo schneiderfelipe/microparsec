@@ -41,10 +41,10 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
   ## given predicate.
   ##
   ## This is used to build more complex `Parser`s.
-  return proc(s: Stream): ParseResult[char] =
-    if s.atEnd:
+  return proc(s: Stream): (ParseResult[char], ParseState) =
+    result[0] = if s.atEnd:
       ParseResult[char].err(
-        (s.getPosition, "end of input", expected)
+        ("end of input", expected)
       )
     else:
       let c = s.readChar
@@ -53,8 +53,9 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
       else:
         s.setPosition(s.getPosition - 1)
         ParseResult[char].err(
-          (s.getPosition, $c, expected)
+          ($c, expected)
         )
+    result[1] = s.getPosition
 
 # TODO: by inverting the order of the parameters, we can use Nim do-blocks
 # for defining mapping functions.
@@ -62,12 +63,14 @@ func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
   ##
   ## This is required in "functor" parsing.
-  return proc(s: Stream): ParseResult[T] =
-    let result0 = parser(s)
-    if result0.isOk:
+  return proc(s: Stream): (ParseResult[T], ParseState) =
+    let (result0, state0) = parser(s)
+    result[0] = if result0.isOk:
       ParseResult[T].ok(f(result0.get))
     else:
+      # If passing the same error, we should pass the same state.
       ParseResult[T].err(result0.error)
+    result[1] = state0
 
 # TODO: the parameter order might be swapped here. Take a look at arrow-style
 # combinators.
@@ -76,11 +79,16 @@ func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inlin
   ## `Parser`.
   ##
   ## This is required in applicative parsing.
-  return func(s: Stream): ParseResult[T] =
-    let result0 = parser0(s)
-    if result0.isOk:
-      fmap(result0.get, parser1)(s)
+  return proc(s: Stream): (ParseResult[T], ParseState) =
+    let (result0, state0) = parser0(s)
+    result[0] = if result0.isOk:
+      let (result1, state1) = fmap(result0.get, parser1)(s)
+      # If passing the same error, we should pass the same state.
+      result[1] = state1
+      result1
     else:
+      # If passing the same error, we should pass the same state.
+      result[1] = state0
       ParseResult[T].err(result0.error)
 
 # TODO: maybe we should wrap characters in error messages in single quotes.
@@ -127,13 +135,13 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
   ##
   ## This function is called `try` in Parsec, but this conflicts with the
   ## `try` keyword in Nim.
-  return func(s: Stream): ParseResult[Option[T]] =
-    let res = parser(s)
-    if res.isOk:
+  return proc(s: Stream): (ParseResult[Option[T]], ParseState) =
+    let (res, state) = parser(s)
+    result[0] = if res.isOk:
       ParseResult[Option[T]].ok(some(res.get))
     else:
       ParseResult[Option[T]].ok(none(T))
-
+    result[1] = state
 
 # Also known as `item`.
 # TODO: an old definition explicitly checked for end of input. This is
@@ -145,17 +153,17 @@ func `<$`*[S,T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   fmap((_: S) => x, parser)
 
 func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  return func(s: Stream): ParseResult[T] =
+  return func(s: Stream): (ParseResult[T], ParseState) =
     discard parser0(s)
     parser1(s)
 
 func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
-  return func(s: Stream): ParseResult[T] =
+  return func(s: Stream): (ParseResult[T], ParseState) =
     result = parser0(s)
     discard parser1(s)
 
-func parse*[T](parser: Parser[T], s: Stream): ParseResult[T] {.inline.} =
+func parse*[T](parser: Parser[T], s: Stream): (ParseResult[T], ParseState) {.inline.} =
   parser s
 
-func parse*[T](parser: Parser[T], s: string): ParseResult[T] {.inline.} =
+func parse*[T](parser: Parser[T], s: string): (ParseResult[T], ParseState) {.inline.} =
   parser newStringStream(s)
