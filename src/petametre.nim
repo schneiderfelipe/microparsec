@@ -30,7 +30,7 @@ func identity*[T](x: T): T =
   ## Identity function.
   x
 
-func compose*[R,S,T](f: R -> S, g: S -> T): R -> T =
+func compose*[R,S,T](f: R -> S, g: S -> T): R -> T {.inline.} =
   ## Compose two functions.
   (x: R) => g(f(x))
 
@@ -144,24 +144,21 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
 let anyChar*: Parser[char] =
   satisfy((_: char) => true, @["any character"])
 
-# TODO: implement `many`, `between` and the probably others suggested in
-# <http://theorangeduck.com/page/you-could-have-invented-parser-combinators>.
-
-func `<$`*[S,T](x: T, parser: Parser[S]): Parser[T] =
+func `<$`*[S,T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   fmap((_: S) => x, parser)
 
-func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] =
+func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   return func(s: Stream): ParseResult[T] =
     discard parser0(s)
     parser1(s)
 
-func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] =
+func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
   return func(s: Stream): ParseResult[T] =
     result = parser0(s)
     discard parser1(s)
 
-func parse*[T](parser: Parser[T], s: Stream): ParseResult[T] =
+func parse*[T](parser: Parser[T], s: Stream): ParseResult[T] {.inline.} =
   parser s
 
-func parse*[T](parser: Parser[T], s: string): ParseResult[T] =
+func parse*[T](parser: Parser[T], s: string): ParseResult[T] {.inline.} =
   parser newStringStream(s)

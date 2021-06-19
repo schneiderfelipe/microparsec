@@ -1,3 +1,6 @@
+# TODO: implement other combinators suggested in
+# <http://theorangeduck.com/page/you-could-have-invented-parser-combinators>.
+
 import streams
 import sugar
 
@@ -47,26 +50,13 @@ func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inl
 # TODO: chainl1
 # TODO: chainr1
 
-proc anyToken(s: Stream): ParseResult[char] =
+# TODO: tricky combinator
+# TODO: tests
+proc anyToken(s: Stream): ParseResult[char] {.inline.} =
   ## A `Parser` that accepts any kind of token and returns the accepted token.
-  ## It is for example used to implement `eof`.
   ParseResult[char].ok(s.readChar)
 
-func notFollowedBy[T](parser: Parser[T]): Parser[void] =
-  ## A `Parser` that only succeeds when `parser` fails. This parser does not
-  ## consume any input. This parser can be used to implement the
-  ## "longest match" rule.
-  return proc(s: Stream): ParseResult[void] =
-    let position = s.getPosition
-    let res = parser(s)
-    s.setPosition(position)
-    if res.isErr:
-      ParseResult[void].ok()
-    else:
-      ParseResult[void].err(
-        (s.getPosition, $res.get, @[])
-      )
-
+# TODO: tricky combinator
 proc eof*(s: Stream): ParseResult[void] =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
@@ -77,7 +67,24 @@ proc eof*(s: Stream): ParseResult[void] =
       (s.getPosition, $s.peekChar, @["end of input"])
     )
 
-# TODO: manyTill
-# TODO: lookAhead
-# TODO: parserTrace
-# TODO: parserTraced
+# TODO: tricky combinator
+# TODO: tests
+func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
+  ## A `Parser` that only succeeds when `parser` fails. This parser does not
+  ## consume any input. This parser can be used to implement the
+  ## "longest match" rule.
+  return func(s: Stream): ParseResult[void] =
+    let position = s.getPosition
+    let res = parser(s)
+    s.setPosition(position)
+    if res.isErr:
+      ParseResult[void].ok()
+    else:
+      ParseResult[void].err(
+        (s.getPosition, $res.get, @[])
+      )
+
+# TODO: manyTill  # TODO: tricky combinator
+# TODO: lookAhead  # TODO: tricky combinator
+# TODO: parserTrace  # TODO: simple debugging
+# TODO: parserTraced  # TODO: simple debugging
