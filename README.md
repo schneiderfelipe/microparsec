@@ -1,9 +1,9 @@
 # petametre
 
-petametre is a parser combinator library for Nim.
-<!-- With petametre you can implement recursive‐descent text parsers for formal grammars.
+petametre is a monadic parser combinator library for Nim.
+It is a feature-rich package that tries to find a nice balance between speed, flexibility, and quality of parse errors.
 
-petametre's features include:
+<!-- petametre's features include:
 
 - support for context‐sensitive, infinite look‐ahead grammars
 - automatically generated, highly readable error messages
@@ -20,4 +20,5 @@ While the implementations of Parsec and petametre are completely different, they
 
 ## Similar projects
 
-- [FParsec (F#)](http://www.quanttec.com/fparsec/)
+- [Megaparsec](https://github.com/mrkkrp/megaparsec) (Haskell)
+- [FParsec](http://www.quanttec.com/fparsec/) (F#)
