@@ -8,6 +8,7 @@
 import unittest
 
 import petametre
+import petametre/types
 
 suite "basic character parsers":
   test "anyChar":

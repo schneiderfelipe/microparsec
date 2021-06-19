@@ -21,6 +21,11 @@ export Option, some, none
 import results
 export ok, err, `==`
 
+import petametre/combinators
+import petametre/primitives
+import petametre/types
+export many1, `<|>`, `pure`, `eof`, `>>=`
+
 func identity*[T](x: T): T =
   ## Identity function.
   x
@@ -28,23 +33,6 @@ func identity*[T](x: T): T =
 func compose*[R,S,T](f: R -> S, g: S -> T): R -> T =
   ## Compose two functions.
   (x: R) => g(f(x))
-
-type
-  ParseError = tuple
-    ## A `ParseError` contains both what was expected by the `Parser`, what
-    ## was actually found by it (the unexpected `string`) and the `Stream`
-    ## position.
-    position: int
-    unexpected: string
-    expected: seq[string]
-
-  ParseResult*[T] = Result[T,ParseError]
-    ## A `ParseResult` of type `T` contains either a parsed object of that
-    ## type or a `ParseError`.
-
-  Parser[T] = Stream -> ParseResult[T]
-    ## A `Parser` for a type `T` is a function that receives a `Stream` and
-    ## gives back a `ParseResult` of the same type.
 
 func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   return func(s: Stream): ParseResult[T] =
@@ -55,29 +43,6 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
       ParseResult[T].err(
         (res.error.position, res.error.unexpected, @[expected])
       )
-
-func pure*[T](x: T): Parser[T] {.inline.} =
-  ## Create a `Parser` that always return `x`, but consumes nothing. As such,
-  ## it never fails.
-  ##
-  ## This is required in both applicative and monadic parsers.
-  return func(_: Stream): ParseResult[T] =
-    ParseResult[T].ok(x)
-
-func `>>=`*[S,T](parser0: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
-  ## Pass the result of a `Parser` to a function that returns another `Parser`.
-  ##
-  ## This is required in monadic parsing.
-  return proc(s: Stream): ParseResult[T] =
-    let position = s.getPosition
-    let result0 = parser0(s)
-    if result0.isOk:
-      let result1 = f(result0.get)(s)
-      if result1.isErr:
-        s.setPosition(position)
-      result1
-    else:
-      ParseResult[T].err(result0.error)
 
 # `satisfy` could be defined in terms of anyChar, but I find the following
 # implementation simpler.
@@ -99,28 +64,6 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
         s.setPosition(s.getPosition - 1)
         ParseResult[char].err(
           (s.getPosition, $c, expected)
-        )
-
-# TODO: <|> has different semantics from Parsec's <|> w.r.t. backtracking.
-# This might be either good or bad. But the current implementation is
-# definitely useful.
-# TODO: implement choice as well and ensure a full alternative instance.
-func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
-  ## Create a `Parser` as a choice combination between two other `Parser`s.
-  return func(s: Stream): ParseResult[T] =
-    let result0 = parser0(s)
-    if result0.isOk:
-      result0
-    else:
-      let result1 = parser1(s)
-      if result1.isOk:
-        result1
-      else:
-        assert result0.error.unexpected == result1.error.unexpected
-        assert result0.error.expected != result1.error.expected  # ?
-        assert result0.error.position == result1.error.position
-        ParseResult[T].err(
-          (result0.error.position, result0.error.unexpected, result0.error.expected & result1.error.expected)
         )
 
 # TODO: by inverting the order of the parameters, we can use Nim do-blocks
@@ -183,17 +126,6 @@ func str*(s: string): Parser[string] {.inline.} =
     ch(s[0]) >> str(s[1..^1])
   ) <?> s
 
-# TODO: we might specialize this for char and string in the future, as
-# Haskell considers strings as sequences of characters. But this might not be
-# necessary (except if for performance, I'm not sure), because the current
-# implementation works out of the box already! (Which is amazing...)
-# TODO: check error messages from Parsec and duplicate them here.
-func many1*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
-  ## Build a `Parser` that applies another `Parser` one or more times.
-  parser >>= proc(x: T): Parser[seq[T]] =
-    (many1(parser) <|> pure(newSeq[T]())) >>= proc(xs: seq[T]): Parser[seq[T]] =
-      pure(x & xs)
-
 # TODO: this is apparently not part of the standard Parsec
 let identifier*: Parser[seq[char]] =
   many1(letter <|> digit <|> ch('_'))
@@ -243,15 +175,3 @@ func parse*[T](parser: Parser[T], s: Stream): ParseResult[T] =
 
 func parse*[T](parser: Parser[T], s: string): ParseResult[T] =
   parser newStringStream(s)
-
-# TODO: define eof in function of ch or something else
-# TODO: this function returns a null character if it succeeds. Check if
-# that's what Parsec does or not (it might return an empty string instead, do
-# what it does there).
-proc eof*(s: Stream): ParseResult[char] =
-  if s.atEnd:
-    ParseResult[char].ok('\x00')
-  else:
-    ParseResult[char].err(
-      (s.getPosition, $s.peekChar, @["end of input"])
-    )
