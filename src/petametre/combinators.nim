@@ -46,21 +46,37 @@ func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inl
 # TODO: chainl
 # TODO: chainl1
 # TODO: chainr1
-# TODO: anyToken
 
-# TODO: define eof in function of ch or something else
-# TODO: this function returns a null character if it succeeds. Check if
-# that's what Parsec does or not (it might return an empty string instead, do
-# what it does there).
-proc eof*(s: Stream): ParseResult[char] =
+proc anyToken(s: Stream): ParseResult[char] =
+  ## A `Parser` that accepts any kind of token and returns the accepted token.
+  ## It is for example used to implement `eof`.
+  ParseResult[char].ok(s.readChar)
+
+func notFollowedBy[T](parser: Parser[T]): Parser[void] =
+  ## A `Parser` that only succeeds when `parser` fails. This parser does not
+  ## consume any input. This parser can be used to implement the
+  ## "longest match" rule.
+  return proc(s: Stream): ParseResult[void] =
+    let position = s.getPosition
+    let res = parser(s)
+    s.setPosition(position)
+    if res.isErr:
+      ParseResult[void].ok()
+    else:
+      ParseResult[void].err(
+        (s.getPosition, $res.get, @[])
+      )
+
+proc eof*(s: Stream): ParseResult[void] =
+  ## A `Parser` that only succeeds at the end of the input. This is not a
+  ## primitive parser but it is defined using `notFollowedBy`.
   if s.atEnd:
-    ParseResult[char].ok('\x00')
+    ParseResult[void].ok()
   else:
-    ParseResult[char].err(
+    ParseResult[void].err(
       (s.getPosition, $s.peekChar, @["end of input"])
     )
 
-# TODO: notFollowedBy
 # TODO: manyTill
 # TODO: lookAhead
 # TODO: parserTrace

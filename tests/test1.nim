@@ -8,6 +8,7 @@
 import unittest
 
 import petametre
+import petametre/primitives
 import petametre/types
 
 suite "basic character parsers":
@@ -94,8 +95,10 @@ suite "basic character parsers":
 
   test "eof":
     let p = eof
-    check p.parse("hello") == ParseResult[char].err (position: 0, unexpected: "h", expected: @["end of input"])
-    check p.parse("") == ParseResult[char].ok '\x00'
+    check p.parse("hello") == ParseResult[void].err (position: 0, unexpected: "h", expected: @["end of input"])
+    # Can't compare `ok`s due to a bug, see <https://github.com/arnetheduck/nim-result/issues/16>.
+    # check p.parse("") == ParseResult[void].ok
+    check p.parse("").isOk
 
   test "ch":
     let p = ch('h')

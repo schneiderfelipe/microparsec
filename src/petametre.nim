@@ -19,7 +19,7 @@ import options
 export Option, some, none
 
 import results
-export ok, err, `==`
+export ok, err, isOk, `==`
 
 import petametre/combinators
 import petametre/primitives
@@ -33,16 +33,6 @@ func identity*[T](x: T): T =
 func compose*[R,S,T](f: R -> S, g: S -> T): R -> T =
   ## Compose two functions.
   (x: R) => g(f(x))
-
-func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
-  return func(s: Stream): ParseResult[T] =
-    let res = parser(s)
-    if res.isOk:
-      res
-    else:
-      ParseResult[T].err(
-        (res.error.position, res.error.unexpected, @[expected])
-      )
 
 # `satisfy` could be defined in terms of anyChar, but I find the following
 # implementation simpler.
