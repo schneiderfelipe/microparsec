@@ -42,6 +42,14 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
           (result0.error.position, result0.error.unexpected, result0.error.expected & result1.error.expected)
         )
 
+func pure*(): Parser[void] {.inline.} =
+  ## Create a `Parser` that returns nothing and consumes nothing. As such,
+  ## it never fails.
+  ##
+  ## This is required in both applicative and monadic parsers.
+  return func(_: Stream): ParseResult[void] =
+    ParseResult[void].ok
+
 func pure*[T](x: T): Parser[T] {.inline.} =
   ## Create a `Parser` that always return `x`, but consumes nothing. As such,
   ## it never fails.

@@ -172,6 +172,17 @@ suite "basic character parsers":
     # check p.parse("1,2,3,4") == ParseResult[seq[string]].ok @["1", "2", "3", "4"]
     # check p.parse("") == ParseResult[seq[string]].err (position: 0, unexpected: "end of input", expected: @["{"])
 
+  test "optional":
+    let p = optional(ch('h'))
+    # check p.parse("ello") == ParseResult[void].ok
+    # check p.parse("hello") == ParseResult[void].ok
+    # check p.parse("hhello") == ParseResult[void].ok
+    # check p.parse("") == ParseResult[void].ok
+    check p.parse("ello").isOk
+    check p.parse("hello").isOk
+    check p.parse("hhello").isOk
+    check p.parse("").isOk
+
 suite "parsing utilities":
   test "parse":
     let p = anyChar

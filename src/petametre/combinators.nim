@@ -12,7 +12,12 @@ import types
 # TODO: choice
 # TODO: option
 # TODO: optionMaybe
-# TODO: optional
+
+func optional*[T](parser: Parser[T]): Parser[void] {.inline.} =
+  ## Create a `Parser` that tries to apply `parser`. It might consume input if
+  ## `parser` is successful and consumes input. And due to backtracking, it
+  ## never fails. The result of `parser` is discarded.
+  parser >> pure() <|> pure()
 
 func between*[R,S,T](open: Parser[R], parser: Parser[T], close: Parser[S]): Parser[T] {.inline.} =
   ## Create a `Parser` that parses `open`, followed by `parser` and then
