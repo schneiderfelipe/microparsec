@@ -68,20 +68,18 @@ func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inli
 
 # TODO: tricky combinator
 # TODO: tests
-proc anyToken(s: ParseState): ParseResult[char] {.inline.} =
+proc anyToken(state: ParseState): ParseResult[char] {.inline.} =
   ## A `Parser` that accepts any kind of token and returns the accepted token.
-  ParseResult[char].ok(s.readChar)
+  ParseResult[char].ok(state.readChar)
 
 # TODO: tricky combinator
-proc eof*(s: ParseState): ParseResult[void] =
+proc eof*(state: ParseState): ParseResult[void] =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
-  if s.atEnd:
+  if state.atEnd:
     ParseResult[void].ok()
   else:
-    ParseResult[void].err(
-      ($s.peekChar, @["end of input"])
-    )
+    failure[void]($state.peekChar, @["end of input"], state)
 
 # TODO: tricky combinator
 # TODO: tests
@@ -89,21 +87,19 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## A `Parser` that only succeeds when `parser` fails. This parser does not
   ## consume any input. This parser can be used to implement the
   ## "longest match" rule.
-  return func(s: ParseState): ParseResult[void] =
+  return func(state: ParseState): ParseResult[void] =
     let
-      position = s.getPosition
-      res = parser(s)
+      position = state.getPosition
+      res = parser(state)
     if res.isErr:
       ParseResult[void].ok()
     else:
-      ParseResult[void].err(
-        ($res.get, @[])
-      )
+      failure[void]($res.get, @[], state)
     # TODO: hey setPosition is not exposed anymore, so we have to come up with
     # an alternative implementation that does not require arbitrary
     # repositioning. I'm thinking about marking the stream and asking it to
     # go back to the mark (two new functions).
-    s.setPosition(position)
+    state.setPosition(position)
 
 # TODO: manyTill  # TODO: tricky combinator
 # TODO: lookAhead  # TODO: tricky combinator

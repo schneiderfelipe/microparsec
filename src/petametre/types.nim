@@ -12,6 +12,7 @@ type
     ## what was actually found by it (the unexpected `string`).
     unexpected: string
     expected: seq[string]
+    state: ParseState
 
   ParseState* = ref object
     ## A `ParseState` keeps track of the `Stream` and where we are at it.
@@ -27,52 +28,62 @@ type
     ## A `Parser` for a type `T` is a function that receives a `ParseState`
     ## and gives back a `ParseResult` of type `T`.
 
+func failure*[T](unexpected: string, expected: seq[string], state: ParseState): ParseResult[T] {.inline.} =
+  ## Stop parsing and report a `ParseError`.
+  ParseResult[T].err(
+    (unexpected, expected, state)
+  )
 
-proc atEnd*(s: ParseState): bool {.inline.} =
+func failure*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
+  ## Stop parsing and report the `ParseError` of a `ParseResult`.
+  ParseResult[T].err(res.error)
+
+
+proc atEnd*(state: ParseState): bool {.inline.} =
   ## Checks if more data can be read from `s`.
   ## Returns `true` if all data has been read.
-  s.stream.atEnd
+  state.stream.atEnd
 
-proc peekChar*(s: ParseState): char {.inline.} =
+proc peekChar*(state: ParseState): char {.inline.} =
   ## Peeks a char from the `ParseState` `s`.
   ## Raises `IOError` if an error occurred.
   ## Returns '\0' as an EOF marker.
-  s.stream.peekChar
+  state.stream.peekChar
 
 
-proc stepBack*(s: ParseState) {.inline.} =
-  s.position = s.lastPosition
-  s.stream.setPosition(s.stream.getPosition - 1)
+proc stepBack*(state: ParseState) {.inline.} =
+  state.position = state.lastPosition
+  state.stream.setPosition(state.stream.getPosition - 1)
 
 
-template getPosition*(s: ParseState): int =
+template getPosition*(state: ParseState): int =
   ## Retrieves the current position in the `ParseState` `s`.
-  s.stream.getPosition
+  state.stream.getPosition
 
 
-template readChar*(s: ParseState): char =
+template readChar*(state: ParseState): char =
   ## Reads a char from the `ParseState` `s`.
   ## Raises `IOError` if an error occurred.
   ## Returns '\0' as an EOF marker.
-  s.lastPosition = s.position
-  let c = s.stream.readChar
-  if not s.atNewLine:
-    s.position.column += 1
+  state.lastPosition = state.position
+  let c = state.stream.readChar
+  if not state.atNewLine:
+    state.position.column += 1
     if c == '\n':
-      s.atNewLine = true
+      state.atNewLine = true
   else:
     if c != '\n':
       # TODO: is it "\r\n" or "\n\r"? And don't forget to test this!
       if c != '\r':
         # We just consumed the first char of a new line
-        s.position = (column: 1, line: s.position.line + 1)
-        s.atNewLine = false
+        state.position = (column: 1, line: state.position.line + 1)
+        state.atNewLine = false
       else:
         # '\r' is still part of the current line
-        s.position.column += 1
+        state.position.column += 1
     else:
       # We're at the end of an empty line
-      s.position = (column: 0, line: s.position.line + 1)
+      state.position = (column: 0, line: state.position.line + 1)
   c
 
 
@@ -90,8 +101,22 @@ template newParseState(s: string): ParseState =
 template parse*[T](parser: Parser[T], x: auto): ParseResult[T] =
   parser newParseState(x)
 
-template debugParse*[T](parser: Parser[T], x: auto): (ParseResult[T], int, int, int) =
-  let s = newParseState(x)
+proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
+  let state = newParseState(x)
   # TODO: for debugging purposes, it is more useful to return the rest of the
   # input, instead of only its position.
-  (parser s, s.stream.getPosition, s.position.line, s.position.column)
+  let res = parser(state)
+  if res.isOk:
+    $(res.get, state.stream.getPosition, state.position.line, state.position.column)
+  else:
+    $((unexpected: res.error.unexpected, expected: res.error.expected), state.stream.getPosition, state.position.line, state.position.column)
+
+proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
+  let state = newParseState(x)
+  # TODO: for debugging purposes, it is more useful to return the rest of the
+  # input, instead of only its position.
+  let res = parser(state)
+  if res.isOk:
+    $(state.stream.getPosition, state.position.line, state.position.column)
+  else:
+    $((unexpected: res.error.unexpected, expected: res.error.expected), state.stream.getPosition, state.position.line, state.position.column)

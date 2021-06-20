@@ -8,12 +8,12 @@ func `>>=`*[S,T](parser0: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.
   ##
   ## This is required in monadic parsing.
-  return proc(s: ParseState): ParseResult[T] =
-    let result0 = parser0(s)
+  return proc(state: ParseState): ParseResult[T] =
+    let result0 = parser0(state)
     if result0.isOk:
-      f(result0.get)(s)
+      f(result0.get)(state)
     else:
-      ParseResult[T].err(result0.error)
+      failure[T](result0)
 
 # TODO: <|> has different semantics from Parsec's <|> w.r.t. backtracking.
 # This might be either good or bad. But the current implementation is
@@ -21,26 +21,24 @@ func `>>=`*[S,T](parser0: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
 # TODO: implement choice as well and ensure a full alternative instance.
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
-  return proc(s: ParseState): ParseResult[T] =
-    let result0 = parser0(s)
+  return proc(state: ParseState): ParseResult[T] =
+    let result0 = parser0(state)
     if result0.isOk:
       result0
     else:
-      let result1 = parser1(s)
+      let result1 = parser1(state)
       if result1.isOk:
         result1
       else:
         assert result0.error.unexpected == result1.error.unexpected
-        ParseResult[T].err(
-          (result0.error.unexpected, result0.error.expected & result1.error.expected)
-        )
+        failure[T](result0.error.unexpected, result0.error.expected & result1.error.expected, state)
 
 func pure*(): Parser[void] {.inline.} =
   ## Create a `Parser` that returns nothing and consumes nothing. As such,
   ## it never fails.
   ##
   ## This is required in both applicative and monadic parsers.
-  return proc(s: ParseState): ParseResult[void] =
+  return proc(state: ParseState): ParseResult[void] =
     ParseResult[void].ok
 
 func pure*[T](x: T): Parser[T] {.inline.} =
@@ -48,19 +46,19 @@ func pure*[T](x: T): Parser[T] {.inline.} =
   ## it never fails.
   ##
   ## This is required in both applicative and monadic parsers.
-  return proc(s: ParseState): ParseResult[T] =
+  return proc(state: ParseState): ParseResult[T] =
     ParseResult[T].ok(x)
 
 func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## Build a `Parser` that applies another `Parser` *zero* or more times and
   ## returns a sequence of the parsed values.
-  return func(s: ParseState): ParseResult[seq[T]] =
+  return func(state: ParseState): ParseResult[seq[T]] =
     var
       elems: seq[T]
-      res = parser(s)
+      res = parser(state)
     if res.isOk:
       elems.add(res.get)
-      while (res = parser(s); res.isOk):
+      while (res = parser(state); res.isOk):
         elems.add(res.get)
     ParseResult[seq[T]].ok(elems)
 
@@ -71,14 +69,12 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   ## This is normally used at the end of a set alternatives where we want to
   ## return an error message in terms of a higher level construct rather than
   ## returning all possible characters.
-  return proc(s: ParseState): ParseResult[T] =
-    let res = parser(s)
+  return proc(state: ParseState): ParseResult[T] =
+    let res = parser(state)
     if res.isOk:
       res
     else:
-      ParseResult[T].err(
-        (res.error.unexpected, @[expected])
-      )
+      failure[T](res.error.unexpected, @[expected], state)
 
 func `>>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   parser0 >>= ((_: S) => parser1)

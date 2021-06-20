@@ -38,20 +38,16 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
   ## given predicate.
   ##
   ## This is used to build more complex `Parser`s.
-  return proc(s: ParseState): ParseResult[char] =
-    if s.atEnd:
-      ParseResult[char].err(
-        ("end of input", expected)
-      )
+  return proc(state: ParseState): ParseResult[char] =
+    if state.atEnd:
+      failure[char]("end of input", expected, state)
     else:
-      let c = s.readChar
+      let c = state.readChar
       if predicate(c):
         ParseResult[char].ok(c)
       else:
-        s.stepBack
-        ParseResult[char].err(
-          ($c, expected)
-        )
+        state.stepBack
+        failure[char]($c, expected, state)
 
 # TODO: by inverting the order of the parameters, we can use Nim do-blocks
 # for defining mapping functions.
@@ -59,12 +55,12 @@ func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
   ##
   ## This is required in "functor" parsing.
-  return proc(s: ParseState): ParseResult[T] =
-    let result0 = parser(s)
+  return proc(state: ParseState): ParseResult[T] =
+    let result0 = parser(state)
     if result0.isOk:
       ParseResult[T].ok(f(result0.get))
     else:
-      ParseResult[T].err(result0.error)
+      failure[T](result0)
 
 # TODO: the parameter order might be swapped here. Take a look at arrow-style
 # combinators.
@@ -73,12 +69,12 @@ func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inlin
   ## `Parser`.
   ##
   ## This is required in applicative parsing.
-  return proc(s: ParseState): ParseResult[T] =
-    let result0 = parser0(s)
+  return proc(state: ParseState): ParseResult[T] =
+    let result0 = parser0(state)
     if result0.isOk:
-      fmap(result0.get, parser1)(s)
+      fmap(result0.get, parser1)(state)
     else:
-      ParseResult[T].err(result0.error)
+      failure[T](result0)
 
 # TODO: maybe we should wrap characters in error messages in single quotes.
 func ch*(c: char): Parser[char] {.inline.} =
@@ -110,8 +106,8 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
   ##
   ## This function is called `try` in Parsec, but this conflicts with the
   ## `try` keyword in Nim.
-  return proc(s: ParseState): ParseResult[Option[T]] =
-    let res = parser(s)
+  return proc(state: ParseState): ParseResult[Option[T]] =
+    let res = parser(state)
     if res.isOk:
       ParseResult[Option[T]].ok(some(res.get))
     else:
@@ -121,16 +117,16 @@ func `<$`*[S,T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   fmap((_: S) => x, parser)
 
 func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  return func(s: ParseState): ParseResult[T] =
-    discard parser0(s)
-    parser1(s)
+  return func(state: ParseState): ParseResult[T] =
+    discard parser0(state)
+    parser1(state)
 
 # TODO: check how this is implemented in Parsec
 func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
-  return func(s: ParseState): ParseResult[T] =
-    result = parser0(s)
+  return func(state: ParseState): ParseResult[T] =
+    result = parser0(state)
     if result.isOk:
-      discard parser1(s)
+      discard parser1(state)
 
 
 let
