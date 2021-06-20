@@ -12,9 +12,6 @@ export toUpperAscii, toHex
 import sugar
 export `=>`, `->`
 
-import streams
-export newStringStream
-
 import options
 export Option, some, none
 
@@ -41,8 +38,8 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
   ## given predicate.
   ##
   ## This is used to build more complex `Parser`s.
-  return proc(s: Stream): (ParseResult[char], ParseState) =
-    result[0] = if s.atEnd:
+  return proc(s: ParseState): ParseResult[char] =
+    if s.atEnd:
       ParseResult[char].err(
         ("end of input", expected)
       )
@@ -51,11 +48,10 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
       if predicate(c):
         ParseResult[char].ok(c)
       else:
-        s.setPosition(s.getPosition - 1)
+        s.stepBack
         ParseResult[char].err(
           ($c, expected)
         )
-    result[1] = s.getPosition
 
 # TODO: by inverting the order of the parameters, we can use Nim do-blocks
 # for defining mapping functions.
@@ -63,14 +59,12 @@ func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
   ##
   ## This is required in "functor" parsing.
-  return proc(s: Stream): (ParseResult[T], ParseState) =
-    let (result0, state0) = parser(s)
-    result[0] = if result0.isOk:
+  return proc(s: ParseState): ParseResult[T] =
+    let result0 = parser(s)
+    if result0.isOk:
       ParseResult[T].ok(f(result0.get))
     else:
-      # If passing the same error, we should pass the same state.
       ParseResult[T].err(result0.error)
-    result[1] = state0
 
 # TODO: the parameter order might be swapped here. Take a look at arrow-style
 # combinators.
@@ -79,16 +73,11 @@ func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inlin
   ## `Parser`.
   ##
   ## This is required in applicative parsing.
-  return proc(s: Stream): (ParseResult[T], ParseState) =
-    let (result0, state0) = parser0(s)
-    result[0] = if result0.isOk:
-      let (result1, state1) = fmap(result0.get, parser1)(s)
-      # If passing the same error, we should pass the same state.
-      result[1] = state1
-      result1
+  return proc(s: ParseState): ParseResult[T] =
+    let result0 = parser0(s)
+    if result0.isOk:
+      fmap(result0.get, parser1)(s)
     else:
-      # If passing the same error, we should pass the same state.
-      result[1] = state0
       ParseResult[T].err(result0.error)
 
 # TODO: maybe we should wrap characters in error messages in single quotes.
@@ -98,14 +87,6 @@ func ch*(c: char): Parser[char] {.inline.} =
   ## This function is called `char` in Parsec, but this conflicts with the
   ## type `char` in Nim.
   satisfy((d: char) => d == c, @[$c])
-
-let letter*: Parser[char] =
-  satisfy(isAlphaAscii, @["letter"])
-  ## A `Parser` that consumes any letter.
-
-let digit*: Parser[char] =
-  satisfy(isDigit, @["digit"])
-  ## A `Parser` that consumes any digit.
 
 # TODO: this currently always returns an empty string if successful, which is
 # not good!
@@ -121,12 +102,6 @@ func str*(s: string): Parser[string] {.inline.} =
     ch(s[0]) >> str(s[1..^1])
   ) <?> s
 
-# TODO: this is apparently not part of the standard Parsec
-let identifier*: Parser[seq[char]] =
-  many1(letter <|> digit <|> ch('_'))
-  ## A `Parser` that consumes a common identifier, made of letters, digits
-  ## and underscores (`'_'`).
-
 # TODO: attempt has different semantics from Parsec's try. This might be
 # either good or bad. But the current implementation is definitely useful.
 func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
@@ -135,35 +110,46 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
   ##
   ## This function is called `try` in Parsec, but this conflicts with the
   ## `try` keyword in Nim.
-  return proc(s: Stream): (ParseResult[Option[T]], ParseState) =
-    let (res, state) = parser(s)
-    result[0] = if res.isOk:
+  return proc(s: ParseState): ParseResult[Option[T]] =
+    let res = parser(s)
+    if res.isOk:
       ParseResult[Option[T]].ok(some(res.get))
     else:
       ParseResult[Option[T]].ok(none(T))
-    result[1] = state
-
-# Also known as `item`.
-# TODO: an old definition explicitly checked for end of input. This is
-# now done in satisfy. Check Parsec's current implementation.
-let anyChar*: Parser[char] =
-  satisfy((_: char) => true, @["any character"])
 
 func `<$`*[S,T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   fmap((_: S) => x, parser)
 
 func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  return func(s: Stream): (ParseResult[T], ParseState) =
+  return func(s: ParseState): ParseResult[T] =
     discard parser0(s)
     parser1(s)
 
+# TODO: check how this is implemented in Parsec
 func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
-  return func(s: Stream): (ParseResult[T], ParseState) =
+  return func(s: ParseState): ParseResult[T] =
     result = parser0(s)
-    discard parser1(s)
+    if result.isOk:
+      discard parser1(s)
 
-func parse*[T](parser: Parser[T], s: Stream): (ParseResult[T], ParseState) {.inline.} =
-  parser s
 
-func parse*[T](parser: Parser[T], s: string): (ParseResult[T], ParseState) {.inline.} =
-  parser newStringStream(s)
+let
+  letter*: Parser[char] =
+    satisfy(isAlphaAscii, @["letter"])
+    ## A `Parser` that consumes any letter.
+
+  digit*: Parser[char] =
+    satisfy(isDigit, @["digit"])
+    ## A `Parser` that consumes any digit.
+
+  # TODO: this is apparently not part of the standard Parsec
+  identifier*: Parser[seq[char]] =
+    many1(letter <|> digit <|> ch('_'))
+    ## A `Parser` that consumes a common identifier, made of letters, digits
+    ## and underscores (`'_'`).
+
+  # Also known as `item`.
+  # TODO: an old definition explicitly checked for end of input. This is
+  # now done in satisfy. Check Parsec's current implementation.
+  anyChar*: Parser[char] =
+    satisfy((_: char) => true, @["any character"])

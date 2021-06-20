@@ -1,7 +1,6 @@
 # TODO: implement other combinators suggested in
 # <http://theorangeduck.com/page/you-could-have-invented-parser-combinators>.
 
-import streams
 import sugar
 
 import results
@@ -37,6 +36,9 @@ func many1*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
     )
   )
 
+# TODO: I think Megaparsec implements it differently. Their implementation
+# might be better. See <https://stackoverflow.com/a/60223856/4039050> and
+# their code as well.
 func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
   ## Create a `Parser` that parses a sequence of *one* or more occurrences of
   ## `parser`, separated by `separator`.
@@ -46,6 +48,9 @@ func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inl
     )
   )
 
+# TODO: I think Megaparsec implements it differently. Their implementation
+# might be better. See <https://stackoverflow.com/a/60223856/4039050> and
+# their code as well.
 func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
   ## Create a `Parser` that parses a sequence of *zero* or more occurrences of
   ## `parser`, separated by `separator`.
@@ -63,21 +68,20 @@ func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inli
 
 # TODO: tricky combinator
 # TODO: tests
-proc anyToken(s: Stream): ParseResult[char] {.inline.} =  # TODO: bad return!
+proc anyToken(s: ParseState): ParseResult[char] {.inline.} =
   ## A `Parser` that accepts any kind of token and returns the accepted token.
   ParseResult[char].ok(s.readChar)
 
 # TODO: tricky combinator
-proc eof*(s: Stream): (ParseResult[void], ParseState) =
+proc eof*(s: ParseState): ParseResult[void] =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
-  result[0] = if s.atEnd:
+  if s.atEnd:
     ParseResult[void].ok()
   else:
     ParseResult[void].err(
       ($s.peekChar, @["end of input"])
     )
-  result[1] = s.getPosition
 
 # TODO: tricky combinator
 # TODO: tests
@@ -85,17 +89,21 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## A `Parser` that only succeeds when `parser` fails. This parser does not
   ## consume any input. This parser can be used to implement the
   ## "longest match" rule.
-  return func(s: Stream): (ParseResult[void], ParseState) =
-    let position = s.getPosition
-    let (res, state) = parser(s)
-    result[0] = if res.isErr:
+  return func(s: ParseState): ParseResult[void] =
+    let
+      position = s.getPosition
+      res = parser(s)
+    if res.isErr:
       ParseResult[void].ok()
     else:
       ParseResult[void].err(
         ($res.get, @[])
       )
+    # TODO: hey setPosition is not exposed anymore, so we have to come up with
+    # an alternative implementation that does not require arbitrary
+    # repositioning. I'm thinking about marking the stream and asking it to
+    # go back to the mark (two new functions).
     s.setPosition(position)
-    result[1] = position
 
 # TODO: manyTill  # TODO: tricky combinator
 # TODO: lookAhead  # TODO: tricky combinator
