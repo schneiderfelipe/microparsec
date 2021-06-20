@@ -31,7 +31,6 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
         result1
       else:
         assert result0.error.unexpected == result1.error.unexpected
-        assert result0.error.expected != result1.error.expected  # ?
         ParseResult[T].err(
           (result0.error.unexpected, result0.error.expected & result1.error.expected)
         )
