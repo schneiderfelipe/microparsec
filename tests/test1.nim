@@ -244,6 +244,15 @@ suite "parsing utilities":
 
     check p.debugParse("") == $((unexpected: "end of input", expected: @["any character"]), 0, 0, 0)
 
+  test "error messages":
+    let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
+    check $p.parse("f\noo") == """1:2:(4):
+  |
+1 | oo
+  |   ^
+unexpected end of input
+expecting any character"""
+
 suite "parser algebra":
   test "functors":
     # TODO: I might want to change the parameter order in the future. See

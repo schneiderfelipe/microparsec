@@ -1,15 +1,19 @@
 import streams
+import strutils
 import sugar
 
 import results
 
 type
   ParsePosition = tuple
-    column, line: int
+    ## A `ParsePosition` holds the current column and line numbers, as well
+    ## as the position of the start of the current line.
+    column, line, currentLine: int
 
   ParseError = tuple
-    ## A `ParseError` contains both what was expected by the `Parser`, and
-    ## what was actually found by it (the unexpected `string`).
+    ## A `ParseError` contains what was expected by the `Parser`, what was
+    ## actually found by it (the unexpected `string`) and the current
+    ## `ParseState`.
     unexpected: string
     expected: seq[string]
     state: ParseState
@@ -17,8 +21,8 @@ type
   ParseState* = ref object
     ## A `ParseState` keeps track of the `Stream` and where we are at it.
     stream: Stream
-    position, lastPosition: ParsePosition
-    atNewLine: bool
+    position, lastPosition: ParsePosition  # TODO: do we really need lastPosition?
+    atNewLine: bool  # TODO: should atNewLine be in ParsePosition?
 
   ParseResult*[T] = Result[T,ParseError]
     ## A `ParseResult` of type `T` is a `Result` object with either a parsed
@@ -39,6 +43,41 @@ func failure*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
   ParseResult[T].err(res.error)
 
 
+proc getCurrentLine(state: ParseState): string {.inline.} =
+  ## Get the current line as a `string`.
+  let position = state.stream.getPosition
+  state.stream.setPosition(state.position.currentLine)
+  discard state.stream.readLine(result)
+  state.stream.setPosition(position)
+
+
+proc `$`*[T](res: ParseResult[T]): string {.inline.} =
+  ## Represent a `ParseResult` as a `string`. Mostly used to print errors.
+  if res.isErr:
+    let
+      error = res.error
+      state = error.state
+
+      column = state.position.column
+      lineStr = $state.position.line
+      margin = indent("|", len(lineStr) + 1)
+
+      positionInfo = lineStr & ':' & $column & ":(" & $state.stream.getPosition & "):"
+      offendingLine = getCurrentLine(state)
+      markingCaret = indent("^", column)
+      unexpectedInfo = "unexpected " & error.unexpected
+      expectingInfo = "expecting " & join(error.expected, ", ")
+
+    positionInfo   &                         '\n' &
+    margin         &                         '\n' &
+    lineStr        & " | " & offendingLine & '\n' &
+    margin         & ' '   & markingCaret  & '\n' &
+    unexpectedInfo &                         '\n' &
+    expectingInfo
+  else:
+    "Got " & res.get
+
+
 proc atEnd*(state: ParseState): bool {.inline.} =
   ## Checks if more data can be read from `s`.
   ## Returns `true` if all data has been read.
@@ -52,6 +91,7 @@ proc peekChar*(state: ParseState): char {.inline.} =
 
 
 proc stepBack*(state: ParseState) {.inline.} =
+  ## Go a step back.
   state.position = state.lastPosition
   state.stream.setPosition(state.stream.getPosition - 1)
 
@@ -76,14 +116,14 @@ template readChar*(state: ParseState): char =
       # TODO: is it "\r\n" or "\n\r"? And don't forget to test this!
       if c != '\r':
         # We just consumed the first char of a new line
-        state.position = (column: 1, line: state.position.line + 1)
+        state.position = (column: 1, line: state.position.line + 1, currentLine: state.stream.getPosition - 1)
         state.atNewLine = false
       else:
         # '\r' is still part of the current line
         state.position.column += 1
     else:
       # We're at the end of an empty line
-      state.position = (column: 0, line: state.position.line + 1)
+      state.position = (column: 0, line: state.position.line + 1, currentLine: state.position.currentLine)
   c
 
 
@@ -99,23 +139,26 @@ template newParseState(s: string): ParseState =
 
 
 template parse*[T](parser: Parser[T], x: auto): ParseResult[T] =
+  ## Apply a `Parser` to `x`.
   parser newParseState(x)
 
 proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
-  let state = newParseState(x)
+  let
+    state = newParseState(x)
+    res = parser(state)
   # TODO: for debugging purposes, it is more useful to return the rest of the
   # input, instead of only its position.
-  let res = parser(state)
   if res.isOk:
     $(res.get, state.stream.getPosition, state.position.line, state.position.column)
   else:
     $((unexpected: res.error.unexpected, expected: res.error.expected), state.stream.getPosition, state.position.line, state.position.column)
 
 proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
-  let state = newParseState(x)
+  let
+    state = newParseState(x)
+    res = parser(state)
   # TODO: for debugging purposes, it is more useful to return the rest of the
   # input, instead of only its position.
-  let res = parser(state)
   if res.isOk:
     $(state.stream.getPosition, state.position.line, state.position.column)
   else:
