@@ -79,7 +79,7 @@ proc eof*(state: ParseState): ParseResult[void] =
   if state.atEnd:
     ParseResult[void].ok()
   else:
-    failure[void]($state.peekChar, @["end of input"], state)
+    failure[void](singleton state.peekChar, @["end of input"], state)
 
 # TODO: tricky combinator
 # TODO: tests
@@ -94,7 +94,7 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
     if res.isErr:
       ParseResult[void].ok()
     else:
-      failure[void]($res.get, @[], state)
+      failure[void](singleton res.get, @[], state)
     # TODO: hey setPosition is not exposed anymore, so we have to come up with
     # an alternative implementation that does not require arbitrary
     # repositioning. I'm thinking about marking the stream and asking it to

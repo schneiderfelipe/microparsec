@@ -62,11 +62,19 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
       lineStr = $state.position.line
       margin = indent("|", len(lineStr) + 1)
 
+      expectedItems = if len(error.expected) < 2:
+        # TODO: what to do with zero elements?
+        join(error.expected, ", ")
+      elif len(error.expected) == 2:
+        error.expected[0] & " or " & error.expected[1]
+      else:
+        join(error.expected[0..^2], ", ") & ", or " & error.expected[^1]
+
       positionInfo = lineStr & ':' & $column & ":(" & $state.stream.getPosition & "):"
       offendingLine = getCurrentLine(state)
       markingCaret = indent("^", column)
       unexpectedInfo = "unexpected " & error.unexpected
-      expectingInfo = "expecting " & join(error.expected, ", ")
+      expectingInfo = "expecting " & expectedItems
 
     positionInfo   &                         '\n' &
     margin         &                         '\n' &
@@ -75,7 +83,8 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
     unexpectedInfo &                         '\n' &
     expectingInfo
   else:
-    "Got " & res.get
+    debugEcho "asdf"
+    "Got " & $res.get  # TODO: this is temporary
 
 
 proc atEnd*(state: ParseState): bool {.inline.} =

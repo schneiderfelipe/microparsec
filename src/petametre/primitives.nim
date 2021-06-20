@@ -4,34 +4,40 @@ import results
 
 import types
 
-func `>>=`*[S,T](parser0: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
+func singleton*(c: char): string =
+  '\'' & c & '\''
+
+func singleton*(c: string): string =
+  '\"' & c & '\"'
+
+func `>>=`*[S,T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.
   ##
   ## This is required in monadic parsing.
   return proc(state: ParseState): ParseResult[T] =
-    let result0 = parser0(state)
-    if result0.isOk:
-      f(result0.get)(state)
+    let res = parser(state)
+    if res.isOk:
+      f(res.get)(state)
     else:
-      failure[T](result0)
+      failure[T](res)
 
 # TODO: <|> has different semantics from Parsec's <|> w.r.t. backtracking.
-# This might be either good or bad. But the current implementation is
-# definitely useful.
+# (Has it?) This might be either good or bad. But the current implementation
+# *is* definitely useful.
 # TODO: implement choice as well and ensure a full alternative instance.
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
   return proc(state: ParseState): ParseResult[T] =
-    let result0 = parser0(state)
-    if result0.isOk:
-      result0
+    let res0 = parser0(state)
+    if res0.isOk:
+      res0
     else:
-      let result1 = parser1(state)
-      if result1.isOk:
-        result1
+      let res1 = parser1(state)
+      if res1.isOk:
+        res1
       else:
-        assert result0.error.unexpected == result1.error.unexpected
-        failure[T](result0.error.unexpected, result0.error.expected & result1.error.expected, state)
+        # Report the last found piece, so that it matches the state
+        failure[T](res1.error.unexpected, res0.error.expected & res1.error.expected, state)
 
 func pure*(): Parser[void] {.inline.} =
   ## Create a `Parser` that returns nothing and consumes nothing. As such,

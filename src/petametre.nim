@@ -16,7 +16,7 @@ import options
 export Option, some, none
 
 import results
-export ok, err, isOk, `==`
+export ok, err, isOk, isErr, `==`
 
 import petametre/combinators
 import petametre/primitives
@@ -47,7 +47,7 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
         ParseResult[char].ok(c)
       else:
         state.stepBack
-        failure[char]($c, expected, state)
+        failure[char](singleton c, expected, state)
 
 # TODO: by inverting the order of the parameters, we can use Nim do-blocks
 # for defining mapping functions.
@@ -56,11 +56,11 @@ func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ##
   ## This is required in "functor" parsing.
   return proc(state: ParseState): ParseResult[T] =
-    let result0 = parser(state)
-    if result0.isOk:
-      ParseResult[T].ok(f(result0.get))
+    let res = parser(state)
+    if res.isOk:
+      ParseResult[T].ok(f(res.get))
     else:
-      failure[T](result0)
+      failure[T](res)
 
 # TODO: the parameter order might be swapped here. Take a look at arrow-style
 # combinators.
@@ -70,11 +70,11 @@ func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inlin
   ##
   ## This is required in applicative parsing.
   return proc(state: ParseState): ParseResult[T] =
-    let result0 = parser0(state)
-    if result0.isOk:
-      fmap(result0.get, parser1)(state)
+    let res0 = parser0(state)
+    if res0.isOk:
+      fmap(res0.get, parser1)(state)
     else:
-      failure[T](result0)
+      failure[T](res0)
 
 # TODO: maybe we should wrap characters in error messages in single quotes.
 func ch*(c: char): Parser[char] {.inline.} =
@@ -82,7 +82,7 @@ func ch*(c: char): Parser[char] {.inline.} =
   ##
   ## This function is called `char` in Parsec, but this conflicts with the
   ## type `char` in Nim.
-  satisfy((d: char) => d == c, @[$c])
+  satisfy((d: char) => d == c, @[singleton c])
 
 # TODO: this currently always returns an empty string if successful, which is
 # not good!
@@ -96,7 +96,7 @@ func str*(s: string): Parser[string] {.inline.} =
     pure(s)
   else:
     ch(s[0]) >> str(s[1..^1])
-  ) <?> s
+  ) <?> singleton s
 
 # TODO: attempt has different semantics from Parsec's try. This might be
 # either good or bad. But the current implementation is definitely useful.
