@@ -1,7 +1,23 @@
 # petametre
 
 petametre is a monadic parser combinator library for Nim.
-It is a feature-rich package that tries to find a nice balance between speed, flexibility, and quality of parse errors.
+
+```nim
+import src/petametre
+
+let p = str("hello") >> many(ch(' ')) >> str("world!")
+p.parse("hello     world?")
+```
+```
+0:15:(15):
+  |
+0 | hello     world?
+  |                ^
+unexpected '?'
+expecting "world!"
+```
+
+It is a feature-rich package built for **speed**, **flexibility**, **portability**, and **quality of parse errors**.
 
 <!-- petametre's features include:
 
