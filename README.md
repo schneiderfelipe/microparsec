@@ -1,11 +1,12 @@
-# Microparsec
+# Microparsec ⭐
 
-Microparsec is a monadic parser combinator library for Nim.
+Microparsec is a fast
+[parser combinator library](https://en.wikipedia.org/wiki/Parser_combinator)
+with excellent error messages.
 
 ```nim
-import src/microparsec
-
-let p = str("hello") >> many(ch(' ')) >> str("world!")
+import microparsec
+let p = str("hello") >> many(ch ' ') >> str ("world!")
 p.parse("hello     world?")
 ```
 ```
@@ -17,24 +18,30 @@ unexpected '?'
 expecting "world!"
 ```
 
-It is a feature-rich package built for **speed**, **flexibility**, **portability**, and **quality of parse errors**.
+Microparsec is a pure
+[Nim](https://nim-lang.org/)
+adaptation of
+[Parsec](https://github.com/haskell/parsec),
+the popular
+[monadic](https://en.wikipedia.org/wiki/Monad_(functional_programming))
+parser combinator library for
+[Haskell](https://www.haskell.org/) by
+[Daan Leijen](https://www.microsoft.com/en-us/research/people/daan/),
+Further inspiration was taken from
+[Attoparsec](https://github.com/haskell/attoparsec)
+and
+[Megaparsec](https://github.com/mrkkrp/megaparsec).
 
-<!-- Microparsec's features include:
+## References
 
-- support for context‐sensitive, infinite look‐ahead grammars
-- automatically generated, highly readable error messages
-- Unicode support
-- efficient support for very large files
-- an embeddable, runtime‐configurable operator‐precedence parser component
-- a simple, efficient and easily extensible API
-- an implementation thoroughly optimized for performance
-- comprehensive documentation
-- a permissive open source license
-
-Microparsec is a Nim adaptation of Parsec, the popular parser combinator library for Haskell by Daan Leijen.
-While the implementations of Parsec and Microparsec are completely different, they share a similar top‐level API. -->
+- Leijen, Daan & Meijer, Erik. (2001). **Parsec: Direct Style Monadic Parser Combinators For The Real World**
+  ([link](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf)).
+- Holden, Daniel. (2014). **You could have invented Parser Combinators**
+  ([link](http://theorangeduck.com/page/you-could-have-invented-parser-combinators)).
 
 ## Similar projects
 
+- [Attoparsec](https://github.com/haskell/attoparsec) (Haskell)
 - [Megaparsec](https://github.com/mrkkrp/megaparsec) (Haskell)
-- [FParsec](http://www.quanttec.com/fparsec/) (F#)
+- [Parsec](https://github.com/haskell/parsec) (Haskell)
+<!-- - [FParsec](http://www.quanttec.com/fparsec/) (F#) -->
