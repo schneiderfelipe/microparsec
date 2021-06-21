@@ -21,10 +21,6 @@ func `>>=`*[S,T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
     else:
       failure[T](res)
 
-# TODO: <|> has different semantics from Parsec's <|> w.r.t. backtracking.
-# (Has it?) This might be either good or bad. But the current implementation
-# *is* definitely useful.
-# TODO: implement choice as well and ensure a full alternative instance.
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
   return proc(state: ParseState): ParseResult[T] =

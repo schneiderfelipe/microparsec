@@ -21,8 +21,8 @@ type
   ParseState* = ref object
     ## A `ParseState` keeps track of the `Stream` and where we are at it.
     stream: Stream
-    position, lastPosition: ParsePosition  # TODO: do we really need lastPosition?
-    atNewLine: bool  # TODO: should atNewLine be in ParsePosition?
+    position, lastPosition: ParsePosition
+    atNewLine: bool
 
   ParseResult*[T] = Result[T,ParseError]
     ## A `ParseResult` of type `T` is a `Result` object with either a parsed
@@ -63,7 +63,6 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
       margin = indent("|", len(lineStr) + 1)
 
       expectedItems = if len(error.expected) < 2:
-        # TODO: what to do with zero elements?
         join(error.expected, ", ")
       elif len(error.expected) == 2:
         error.expected[0] & " or " & error.expected[1]
@@ -84,7 +83,7 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
     expectingInfo
   else:
     debugEcho "asdf"
-    "Got " & $res.get  # TODO: this is temporary
+    "Got " & $res.get
 
 
 proc atEnd*(state: ParseState): bool {.inline.} =
@@ -122,7 +121,6 @@ template readChar*(state: ParseState): char =
       state.atNewLine = true
   else:
     if c != '\n':
-      # TODO: is it "\r\n" or "\n\r"? And don't forget to test this!
       if c != '\r':
         # We just consumed the first char of a new line
         state.position = (column: 1, line: state.position.line + 1, currentLine: state.stream.getPosition - 1)
@@ -136,12 +134,10 @@ template readChar*(state: ParseState): char =
   c
 
 
-# TODO: support working with files through openFileStream.
 func newParseState(s: Stream): ParseState {.inline.} =
   ## Creates a new `ParseState` from the stream `s`.
   ParseState(stream: s)
 
-# TODO: should we call close on the stream?
 template newParseState(s: string): ParseState =
   ## Creates a new `ParseState` from the string `s`.
   newParseState newStringStream(s)
@@ -155,8 +151,6 @@ proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
   let
     state = newParseState(x)
     res = parser(state)
-  # TODO: for debugging purposes, it is more useful to return the rest of the
-  # input, instead of only its position.
   if res.isOk:
     $(res.get, state.stream.getPosition, state.position.line, state.position.column)
   else:
@@ -166,8 +160,6 @@ proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
   let
     state = newParseState(x)
     res = parser(state)
-  # TODO: for debugging purposes, it is more useful to return the rest of the
-  # input, instead of only its position.
   if res.isOk:
     $(state.stream.getPosition, state.position.line, state.position.column)
   else:

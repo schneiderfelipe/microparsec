@@ -32,8 +32,6 @@ suite "basic character parsers":
     check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["digit"]), 0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @["digit"]), 0, 0, 0)
 
-  # TODO: this always returns an empty string. This is in agreement with the
-  # first Parsec paper, but it would be better to return the given string.
   test "str":
     let p = str("hello")
     # check p.debugParse("hello") == $("\"hello\"", 5, 0, 5)
@@ -42,8 +40,6 @@ suite "basic character parsers":
     check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\"hello\""]), 0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @["\"hello\""]), 0, 0, 0)
 
-  # TODO: insert more examples where the results are other than
-  # string/characters.
   test "many":
     let p = many(ch('h'))
     # Both `seq[char]` and `string` work! Very useful! But structural matching
@@ -57,8 +53,6 @@ suite "basic character parsers":
     check p.debugParse("ello") == $(newSeq[char](), 0, 0, 0)
     check p.debugParse("") == $(newSeq[char](), 0, 0, 0)
 
-  # TODO: insert more examples where the results are other than
-  # string/characters.
   test "many1":
     let p = many1(ch('h'))
     # Both `seq[char]` and `string` work! Very useful! But structural matching
@@ -72,7 +66,6 @@ suite "basic character parsers":
     check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]), 0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @["\'h\'"]), 0, 0, 0)
 
-  # TODO: identifier is apparently not part of the standard Parsec and may be deleted in the future.
   test "identifier":
     let p = identifier
     # Both `seq[char]` and `string` work! Very useful! But structural matching
@@ -116,11 +109,6 @@ suite "basic character parsers":
     check p.debugParse("") == $((unexpected: "end of input", expected: @["\'h\'"]), 0, 0, 0)
 
   test "between":
-    # TODO: default errors for this combinator are not good enough. Aren't they?
-    # Observe that the error message bypasses the possibility of more digits.
-    # Think about the error messages as a set of tokens that would be required
-    # to make the input valid.
-    # TODO: the seq[char] thing is a real pain!
     let p = between(ch('{'), many(digit), ch('}'))
     check p.debugParse("{12}hello") == $(@['1', '2'], 4, 0, 4)
     check p.debugParse("{}hello") == $(newSeq[char](), 2, 0, 2)
@@ -152,13 +140,6 @@ suite "basic character parsers":
     check p.debugParse("11,,22") == $(@[@['1', '1']], 3, 0, 3)
     check p.debugParse(",") == $(newSeq[seq[char]](), 0, 0, 0)
     check p.debugParse("") == $(newSeq[seq[char]](), 0, 0, 0)
-    # TODO: seq[seq[char]] is impossible to scale well. Although it is OK to
-    # have seq[char] in place of string in many situations, higher order
-    # containers start to scale bad. Solution: ensure we get
-    #
-    #         `seq[T]` for `T`,
-    #     but `string` for `char`.
-    #
     # check p.debugParse("1,2,3,4") == $(@["\'1\'", "\'2\'", "\'3\'", "\'4\'"], 7, 0, 7)
     # check p.debugParse("") == $((unexpected: "end of input", expected: @["\'{\'"]), 0, 0, 0)
 
@@ -180,13 +161,6 @@ suite "basic character parsers":
     check p.debugParse("11,,22") == $(@[@['1', '1']], 3, 0, 3)
     check p.debugParse(",") == $((unexpected: "\',\'", expected: @["digit"]), 0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @["digit"]), 0, 0, 0)
-    # TODO: seq[seq[char]] is impossible to scale well. Although it is OK to
-    # have seq[char] in place of string in many situations, higher order
-    # containers start to scale bad. Solution: ensure we get
-    #
-    #         `seq[T]` for `T`,
-    #     but `string` for `char`.
-    #
     # check p.debugParse("1,2,3,4") == $(@["\'1\'", "\'2\'", "\'3\'", "\'4\'"], 7, 0, 7)
     # check p.debugParse("") == $((unexpected: "end of input", expected: @["\'{\'"]), 0, 0, 0)
 
@@ -277,8 +251,6 @@ expecting letter, digit, or '_'"""
 
 suite "parser algebra":
   test "functors":
-    # TODO: I might want to change the parameter order in the future. See
-    # what is most common in the Nim world.
     let p = anyChar
     let q = fmap((c: char) => toUpperAscii(c), p)
     check q.debugParse("foo") == $('F', 1, 0, 1)
@@ -303,11 +275,6 @@ suite "parser algebra":
     check q.debugParse("f") == $('F', 1, 0, 1)
     check q.debugParse("") == $((unexpected: "end of input", expected: @["any character"]), 0, 0, 0)
 
-    # Poor man's currying and a lot of help to the compiler
-    # TODO: hey, something like true currying would make things like that much
-    # nicer!
-    # TODO: or we could use lift and varargs for greater good! Choose what is
-    # simpler and nimbler!
     let selector: char -> (char -> (char -> (char, char))) = func(x: char): auto =
       return func(y: char): auto =
         return func(z: char): auto =
@@ -323,8 +290,6 @@ suite "parser algebra":
     check q.debugParse("f") == $('F', 1, 0, 1)
     check q.debugParse("") == $((unexpected: "end of input", expected: @["any character"]), 0, 0, 0)
 
-    # TODO: hey, something like Haskell's do-notation would make things like
-    # that much nicer!
     let dropMiddle = anyChar >>= proc(x: char): auto =
       anyChar >>
         anyChar >>= func(z: char): auto =
@@ -342,7 +307,6 @@ suite "parser combinators":
     check p.debugParse("") == $((unexpected: "end of input", expected: @["\'h\'", "\'e\'"]), 0, 0, 0)
 
   test ">>":
-    # TODO: default errors for this combinator are not good enough. Aren't they?
     let p = ch('h') >> ch('e')
     check p.debugParse("hello") == $('e', 2, 0, 2)
     check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]), 0, 0, 0)
@@ -351,7 +315,6 @@ suite "parser combinators":
     check p.debugParse("") == $((unexpected: "end of input", expected: @["\'h\'"]), 0, 0, 0)
 
   test "*>":
-    # TODO: default errors for this combinator are not good enough. Aren't they?
     let p = (ch('h') >> ch('e')) *> ch('l') >> ch('l')
     check p.debugParse("hello") == $('l', 4, 0, 4)
     check p.debugParse("llo") == $('l', 2, 0, 2)
@@ -369,7 +332,6 @@ suite "parser combinators":
     check p.debugParse("") == $((unexpected: "end of input", expected: @["\'a\'"]), 0, 0, 0)
 
   test "<$":
-    # TODO: default errors for this combinator are not good enough. Aren't they?
     let p = true <$ (ch('h') >> ch('e'))
     check p.debugParse("hello") == $(true, 2, 0, 2)
     check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]), 0, 0, 0)

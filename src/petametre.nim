@@ -1,11 +1,3 @@
-# TODO: we need notation for doing stuff like the following:
-#
-# xml = do{ name <- openTag
-#         ; content <- many xml
-#         ; endTagname
-#         ; pure (Node name content)
-#         } <|> xmlText
-
 import strutils
 export toUpperAscii, toHex
 
@@ -49,8 +41,6 @@ func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char]
         state.stepBack
         failure[char](singleton c, expected, state)
 
-# TODO: by inverting the order of the parameters, we can use Nim do-blocks
-# for defining mapping functions.
 func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
   ##
@@ -62,8 +52,6 @@ func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
     else:
       failure[T](res)
 
-# TODO: the parameter order might be swapped here. Take a look at arrow-style
-# combinators.
 func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inline.} =
   ## Apply the function parsed by a `Parser` to the result of another
   ## `Parser`.
@@ -76,7 +64,6 @@ func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inlin
     else:
       failure[T](res0)
 
-# TODO: maybe we should wrap characters in error messages in single quotes.
 func ch*(c: char): Parser[char] {.inline.} =
   ## Create a `Parser` that consumes a specific single character if present.
   ##
@@ -84,9 +71,6 @@ func ch*(c: char): Parser[char] {.inline.} =
   ## type `char` in Nim.
   satisfy((d: char) => d == c, @[singleton c])
 
-# TODO: this currently always returns an empty string if successful, which is
-# not good!
-# TODO: furthermore, I would like to avoid recursiveness here as well.
 func str*(s: string): Parser[string] {.inline.} =
   ## Build a `Parser` that consumes a given string if present.
   ##
@@ -98,8 +82,6 @@ func str*(s: string): Parser[string] {.inline.} =
     ch(s[0]) >> str(s[1..^1])
   ) <?> singleton s
 
-# TODO: attempt has different semantics from Parsec's try. This might be
-# either good or bad. But the current implementation is definitely useful.
 func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
   ## Create a `Parser` that behaves exactly like the given one, but never
   ## fails. The failure state is modeled as an `Option` of type `T`.
@@ -121,7 +103,6 @@ func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
     discard parser0(state)
     parser1(state)
 
-# TODO: check how this is implemented in Parsec
 func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
     result = parser0(state)
@@ -138,14 +119,10 @@ let
     satisfy(isDigit, @["digit"])
     ## A `Parser` that consumes any digit.
 
-  # TODO: this is apparently not part of the standard Parsec
   identifier*: Parser[seq[char]] =
     many1(letter <|> digit <|> ch('_'))
     ## A `Parser` that consumes a common identifier, made of letters, digits
     ## and underscores (`'_'`).
 
-  # Also known as `item`.
-  # TODO: an old definition explicitly checked for end of input. This is
-  # now done in satisfy. Check Parsec's current implementation.
   anyChar*: Parser[char] =
     satisfy((_: char) => true, @["any character"])
