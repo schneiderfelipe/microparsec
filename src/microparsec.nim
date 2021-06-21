@@ -10,9 +10,9 @@ export Option, some, none
 import results
 export ok, err, isOk, isErr, `==`
 
-import petametre/combinators
-import petametre/primitives
-import petametre/types
+import microparsec/combinators
+import microparsec/primitives
+import microparsec/types
 export Parser, ParseResult, optional, between, sepBy, sepBy1, many, many1, `<|>`, `pure`, `eof`, `>>=`, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =

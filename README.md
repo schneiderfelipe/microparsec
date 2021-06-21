@@ -1,9 +1,9 @@
-# petametre
+# Microparsec
 
-petametre is a monadic parser combinator library for Nim.
+Microparsec is a monadic parser combinator library for Nim.
 
 ```nim
-import src/petametre
+import src/microparsec
 
 let p = str("hello") >> many(ch(' ')) >> str("world!")
 p.parse("hello     world?")
@@ -19,7 +19,7 @@ expecting "world!"
 
 It is a feature-rich package built for **speed**, **flexibility**, **portability**, and **quality of parse errors**.
 
-<!-- petametre's features include:
+<!-- Microparsec's features include:
 
 - support for context‐sensitive, infinite look‐ahead grammars
 - automatically generated, highly readable error messages
@@ -31,8 +31,8 @@ It is a feature-rich package built for **speed**, **flexibility**, **portability
 - comprehensive documentation
 - a permissive open source license
 
-petametre is a Nim adaptation of Parsec, the popular parser combinator library for Haskell by Daan Leijen.
-While the implementations of Parsec and petametre are completely different, they share a similar top‐level API. -->
+Microparsec is a Nim adaptation of Parsec, the popular parser combinator library for Haskell by Daan Leijen.
+While the implementations of Parsec and Microparsec are completely different, they share a similar top‐level API. -->
 
 ## Similar projects
 

@@ -10,7 +10,7 @@ import unittest
 import streams
 import strutils
 
-import petametre
+import microparsec
 
 suite "basic character parsers":
   test "anyChar":
