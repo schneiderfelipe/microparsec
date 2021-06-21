@@ -11,8 +11,6 @@ import streams
 import strutils
 
 import petametre
-import petametre/primitives
-import petametre/types
 
 suite "basic character parsers":
   test "anyChar":

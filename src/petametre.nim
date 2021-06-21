@@ -21,7 +21,7 @@ export ok, err, isOk, isErr, `==`
 import petametre/combinators
 import petametre/primitives
 import petametre/types
-export optional, between, sepBy, sepBy1, many, many1, `<|>`, `pure`, `eof`, `>>=`
+export Parser, ParseResult, optional, between, sepBy, sepBy1, many, many1, `<|>`, `pure`, `eof`, `>>=`, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =
   ## Identity function.
