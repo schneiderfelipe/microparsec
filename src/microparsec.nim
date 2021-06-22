@@ -43,7 +43,7 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
         state.stepBack
         failure[char](quoted c, expected, state)
 
-func fmap*[S, T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
+func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
   ##
   ## This is required in "functor" parsing.
@@ -62,7 +62,7 @@ func `<*>`*[S, T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inli
   return proc(state: ParseState): ParseResult[T] =
     let res0 = parser0(state)
     if res0.isOk:
-      fmap(res0.get, parser1)(state)
+      parser1.map(res0.get)(state)
     else:
       failure[T](res0)
 
@@ -98,7 +98,8 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
       ParseResult[Option[T]].ok(none(T))
 
 func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
-  fmap((_: S) => x, parser)
+  parser.map do (_: S) -> T:
+    x
 
 func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =

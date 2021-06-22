@@ -264,7 +264,8 @@ expecting "world" or "joe""""
 suite "parser algebra":
   test "functors":
     let p = anyChar
-    let q = fmap((c: char) => toUpperAscii(c), p)
+    let q = map(p) do (c: char) -> char:
+      toUpperAscii(c)
     check q.debugParse("foo") == $('F', 1, 0, 1)
     check q.debugParse("oo") == $('O', 1, 0, 1)
     check q.debugParse("f") == $('F', 1, 0, 1)
@@ -272,13 +273,12 @@ suite "parser algebra":
         "any character"]), 0, 0, 0)
 
     # First functor law
-    check fmap(identity[char], p).debugParse("foo") == p.debugParse("foo")
+    check p.map(identity[char]).debugParse("foo") == p.debugParse("foo")
 
     # Second functor law
     let f = (c: char) => toUpperAscii(c)
     let g = (c: char) => toHex($c)
-    check fmap(compose(f, g), p).debugParse("foo") == fmap(g, fmap(f,
-        p)).debugParse("foo")
+    check p.map(compose(f, g)).debugParse("foo") == p.map(f).map(g).debugParse("foo")
 
   test "applicatives":
     let p = anyChar
