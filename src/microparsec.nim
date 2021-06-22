@@ -14,7 +14,7 @@ import microparsec/combinators
 import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, optional, anyChar, between, ch, satisfy, skip, satisfyWith, sepBy, sepBy1, many, many1, notChar,
+export Parser, ParseResult, optional, anyChar, between, ch, satisfy, skip, satisfyWith, peekCh, peekChF, sepBy, sepBy1, many, many1, notChar,
     `<|>`, `pure`, `eof`, flatMap, `>>`, `<?>`, `$`, debugParse, parse, atEnd, setPosition, getPosition
 
 func identity*[T](x: T): T =
@@ -32,7 +32,7 @@ func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   return proc(state: ParseState): ParseResult[T] =
     let res = parser(state)
     if res.isOk:
-      ParseResult[T].ok(f(res.get))
+      ParseResult[T].ok f(res.get)
     else:
       fail[T](res)
 
@@ -69,9 +69,9 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
   return proc(state: ParseState): ParseResult[Option[T]] =
     let res = parser(state)
     if res.isOk:
-      ParseResult[Option[T]].ok(some(res.get))
+      ParseResult[Option[T]].ok some(res.get)
     else:
-      ParseResult[Option[T]].ok(none(T))
+      ParseResult[Option[T]].ok none(T)
 
 func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   parser.map do (_: S) -> T:

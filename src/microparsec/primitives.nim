@@ -45,7 +45,7 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
           message,
         )
 
-func pure*(): Parser[void] {.inline.} =
+func pure*: Parser[void] {.inline.} =
   ## Create a `Parser` that returns nothing and consumes nothing. As such,
   ## it never fails.
   ##
@@ -59,7 +59,7 @@ func pure*[T](x: T): Parser[T] {.inline.} =
   ##
   ## This is required in both applicative and monadic parsers.
   return proc(state: ParseState): ParseResult[T] =
-    ParseResult[T].ok(x)
+    ParseResult[T].ok x
 
 func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## Build a `Parser` that applies another `Parser` *zero* or more times and
@@ -72,7 +72,7 @@ func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
       elems.add(res.get)
       while (res = parser(state); res.isOk):
         elems.add(res.get)
-    ParseResult[seq[T]].ok(elems)
+    ParseResult[seq[T]].ok elems
 
 func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   ## Build a `Parser` that behaves as `parser`, but whenever `parser` fails,

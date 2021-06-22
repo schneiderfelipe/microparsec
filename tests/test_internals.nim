@@ -47,3 +47,17 @@ suite "single character parsers":
         0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "not \'e\'"]), 0, 0, 0)
+
+  test "peekCh":
+    let p = peekCh
+    check p.debugParse("foo") == $(some('f'), 0, 0, 0)
+    check p.debugParse("oo") == $(some('o'), 0, 0, 0)
+    check p.debugParse("f") == $(some('f'), 0, 0, 0)
+    check p.debugParse("") == $(none(char), 0, 0, 0)
+
+  test "peekChF":
+    let p = peekChF
+    check p.debugParse("foo") == $('f', 0, 0, 0)
+    check p.debugParse("oo") == $('o', 0, 0, 0)
+    check p.debugParse("f") == $('f', 0, 0, 0)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @["any character"]), 0, 0, 0)

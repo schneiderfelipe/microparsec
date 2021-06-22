@@ -37,13 +37,13 @@ func sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inl
 
 proc anyToken(state: ParseState): ParseResult[char] {.inline.} =
   ## A `Parser` that accepts any kind of token and returns the accepted token.
-  ParseResult[char].ok(state.readChar)
+  ParseResult[char].ok state.readChar
 
 proc eof*(state: ParseState): ParseResult[void] =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
   if state.atEnd:
-    ParseResult[void].ok()
+    ParseResult[void].ok
   else:
     fail[void](quoted state.peekChar, @["end of input"], state, message = "eof")
 
@@ -56,7 +56,7 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
       position = state.getPosition
       res = parser(state)
     if res.isErr:
-      ParseResult[void].ok()
+      ParseResult[void].ok
     else:
       fail[void](quoted res.get, @[], state, message = "notFollowedBy")
     state.setPosition(position)

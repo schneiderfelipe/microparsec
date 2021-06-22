@@ -38,11 +38,11 @@ type
 func fail*[T](unexpected: string, expected: seq[string],
     state: ParseState, message = ""): ParseResult[T] {.inline.} =
   ## Stop parsing and report a `ParseError`.
-  ParseResult[T].err((unexpected, expected, state, message))
+  ParseResult[T].err (unexpected, expected, state, message)
 
 func fail*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
   ## Stop parsing and report the `ParseError` of a `ParseResult`.
-  ParseResult[T].err(res.error)
+  ParseResult[T].err res.error
 
 
 proc getCurrentLine(state: ParseState): string {.inline.} =
