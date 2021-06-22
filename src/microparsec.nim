@@ -121,10 +121,5 @@ let
     satisfy(isDigit, @["digit"])
     ## A `Parser` that consumes any digit.
 
-  identifier*: Parser[seq[char]] =
-    many1(letter <|> digit <|> ch('_'))
-    ## A `Parser` that consumes a common identifier, made of letters, digits
-    ## and underscores (`'_'`).
-
   anyChar*: Parser[char] =
     satisfy((_: char) => true, @["any character"])

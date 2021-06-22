@@ -76,22 +76,6 @@ suite "basic character parsers":
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'h\'"]), 0, 0, 0)
 
-  test "identifier":
-    let p = identifier
-    # Both `seq[char]` and `string` work! Very useful! But structural matching
-    # does not work (such as comparing tuples and one of the fields are
-    # seq[char]/string! We need to specialize some functions to return string
-    # instead of seq[char], and get rid of all "newSeq[char]" everywhere.
-    check p.debugParse("hello") == $(@['h', 'e', 'l', 'l', 'o'], 5, 0, 5)
-    check p.debugParse("hello") == $(@['h', 'e', 'l', 'l', 'o'], 5, 0, 5)
-    check p.debugParse("hello world") == $(@['h', 'e', 'l', 'l', 'o'], 5, 0, 5)
-    check p.debugParse("123hello_ world") == $(@['1', '2', '3', 'h', 'e', 'l',
-        'l', 'o', '_'], 9, 0, 9)
-    check p.debugParse("*123hello_ world") == $((unexpected: "\'*\'",
-        expected: @["letter", "digit", "\'_\'"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "letter", "digit", "\'_\'"]), 0, 0, 0)
-
   test "attempt":
     let p = attempt(ch('h'))
     check p.debugParse("hello") == $(some('h'), 1, 0, 1)
@@ -276,14 +260,6 @@ expecting 'a'"""
   |          ^
 unexpected 'h'
 expecting "world" or "joe""""
-
-    let s = identifier
-    check $s.parse("*123hello_ world") == """0:0:(0):
-  |
-0 | *123hello_ world
-  | ^
-unexpected '*'
-expecting letter, digit, or '_'"""
 
 suite "parser algebra":
   test "functors":
