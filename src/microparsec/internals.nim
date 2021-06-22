@@ -10,7 +10,7 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
   ## Create a `Parser` that succeeds for any character for which a predicate
   ## returns `true`. Returns the character that is actually parsed.
   ##
-  ## This is used to build more complex `Parser`s.
+  ## This can be used to build more complex `Parser`s.
   return proc(state: ParseState): ParseResult[char] =
     if not state.atEnd:
       let h = state.readChar
@@ -21,6 +21,35 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
         fail[char](quoted h, expected, state, message = "satisfy")
     else:
       fail[char]("end of input", expected, state, message = "satisfy")
+
+func skip*(predicate: char -> bool, expected: seq[string] = @[]): Parser[void] {.inline.} =
+  ## Create a `Parser` that succeeds for any character for which a predicate
+  ## returns `true`.
+  return proc(state: ParseState): ParseResult[void] =
+    if not state.atEnd:
+      let h = state.readChar
+      if predicate(h):
+        ParseResult[void].ok
+      else:
+        state.stepBack
+        fail[void](quoted h, expected, state, message = "satisfy")
+    else:
+      fail[void]("end of input", expected, state, message = "satisfy")
+
+func satisfyWith*[T](f: char -> T, predicate: T -> bool, expected: seq[string] = @[]): Parser[T] {.inline.} =
+  ## Create a `Parser` that transforms a character, and succeeds if a
+  ## predicate returns `true` on the transformed value. The parser returns the
+  ## transformed character that was parsed.
+  return proc(state: ParseState): ParseResult[T] =
+    if not state.atEnd:
+      let c = f state.readChar
+      if predicate(c):
+        ParseResult[T].ok(c)
+      else:
+        state.stepBack
+        fail[T](quoted c, expected, state, message = "satisfyWith")
+    else:
+      fail[T]("end of input", expected, state, message = "satisfyWith")
 
 let anyChar*: Parser[char] =
   satisfy((_: char) => true, @["any character"])
