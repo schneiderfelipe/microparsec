@@ -5,7 +5,8 @@ import microparsec
 suite "common use cases":
   test "identifier":
     # A `Parser` that consumes a common identifier, made of letters, digits and
-    # underscores (`'_'`).
+    # underscores (`'_'`). Close to
+    # <https://hackage.haskell.org/package/parser-combinators-1.2.1/docs/Control-Monad-Combinators.html#v:many>.
     let identifier = many1(letter <|> digit <|> ch('_'))
     # Both `seq[char]` and `string` work! Very useful! But structural matching
     # does not work (such as comparing tuples and one of the fields are
