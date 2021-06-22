@@ -25,7 +25,7 @@ func compose*[R,S,T](f: R -> S, g: S -> T): R -> T {.inline.} =
 
 # `satisfy` could be defined in terms of anyChar, but I find the following
 # implementation simpler.
-func satisfy(predicate: char -> bool, expected: seq[string] = @[]): Parser[char] {.inline.} =
+func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[char] {.inline.} =
   ## Create a `Parser` that consumes a single character if it satisfies a
   ## given predicate.
   ##
