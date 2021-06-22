@@ -184,14 +184,6 @@ suite "basic character parsers":
     check p.debugParse("") == $(0, 0, 0)
 
 suite "parsing utilities":
-  test "parse":
-    let p = anyChar
-    check p.debugParse("hello") == $('h', 1, 0, 1)
-    check p.debugParse(newStringStream("hello")) == p.debugParse("hello")
-
-    check p.parse("hello") == ParseResult[char].ok 'h'
-    check p.parse(newStringStream("hello")) == p.parse("hello")
-
   test "position state":
     let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
     check p.debugParse("foo") == $((unexpected: "end of input", expected: @[
@@ -260,57 +252,6 @@ expecting 'a'"""
   |          ^
 unexpected 'h'
 expecting "world" or "joe""""
-
-suite "parser algebra":
-  test "functors":
-    let p = anyChar
-    let q = map(p) do (c: auto) -> auto:
-      toUpperAscii(c)
-    check q.debugParse("foo") == $('F', 1, 0, 1)
-    check q.debugParse("oo") == $('O', 1, 0, 1)
-    check q.debugParse("f") == $('F', 1, 0, 1)
-    check q.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
-
-    # First functor law
-    check p.map(identity[char]).debugParse("foo") == p.debugParse("foo")
-
-    # Second functor law
-    let f = (c: char) => toUpperAscii(c)
-    let g = (c: char) => toHex($c)
-    check p.map(compose(f, g)).debugParse("foo") == p.map(f).map(g).debugParse("foo")
-
-  test "applicatives":
-    let p = anyChar
-    let f: char -> char = toUpperAscii
-    let q = pure(f) <*> p
-    check q.debugParse("foo") == $('F', 1, 0, 1)
-    check q.debugParse("oo") == $('O', 1, 0, 1)
-    check q.debugParse("f") == $('F', 1, 0, 1)
-    check q.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
-
-    let selector: char -> (char -> (char -> (char, char))) = func(
-        x: char): auto =
-      return func(y: char): auto =
-        return func(z: char): auto =
-          (x, z)
-    let dropMiddle = pure(selector) <*> anyChar <*> anyChar <*> anyChar
-    check dropMiddle.debugParse("pumpkin") == $(('p', 'm'), 3, 0, 3)
-
-  test "monads":
-    let q = anyChar.flatMap do (c: char) -> auto:
-      pure toUpperAscii(c)
-    check q.debugParse("foo") == $('F', 1, 0, 1)
-    check q.debugParse("oo") == $('O', 1, 0, 1)
-    check q.debugParse("f") == $('F', 1, 0, 1)
-    check q.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
-
-    let dropMiddle = anyChar.flatMap do (x: char) -> auto:
-      (anyChar >> anyChar).flatMap do (z: char) -> auto:
-        pure (x, z)
-    check dropMiddle.debugParse("pumpkin") == $(('p', 'm'), 3, 0, 3)
 
 suite "parser combinators":
   test "<|>":

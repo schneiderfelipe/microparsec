@@ -139,11 +139,11 @@ template readChar*(state: ParseState): char =
   c
 
 
-func newParseState(s: Stream): ParseState {.inline.} =
+func newParseState*(s: Stream): ParseState {.inline.} =
   ## Creates a new `ParseState` from the stream `s`.
   ParseState(stream: s)
 
-template newParseState(s: string): ParseState =
+template newParseState*(s: string): ParseState =
   ## Creates a new `ParseState` from the string `s`.
   newParseState newStringStream(s)
 
@@ -151,6 +151,11 @@ template newParseState(s: string): ParseState =
 template parse*[T](parser: Parser[T], x: auto): ParseResult[T] =
   ## Apply a `Parser` to `x`.
   parser newParseState(x)
+
+template parse*[T](parser: Parser[T], x: ParseState): ParseResult[T] =
+  ## Apply a `Parser` to `x`.
+  parser x
+
 
 proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
   let
