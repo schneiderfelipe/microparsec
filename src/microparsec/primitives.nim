@@ -4,11 +4,11 @@ import results
 
 import types
 
-func singleton*(c: char): string =
-  '\'' & c & '\''
-
-func singleton*(c: string): string =
-  '\"' & c & '\"'
+template quoted*(x: auto): string =
+  ## Quote object `x` and return as string.
+  var q: string
+  addQuoted(q, x)
+  q
 
 func `>>=`*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.

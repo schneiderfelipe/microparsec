@@ -41,7 +41,7 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
         ParseResult[char].ok(c)
       else:
         state.stepBack
-        failure[char](singleton c, expected, state)
+        failure[char](quoted c, expected, state)
 
 func fmap*[S, T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
@@ -71,7 +71,7 @@ func ch*(c: char): Parser[char] {.inline.} =
   ##
   ## This function is called `char` in Parsec, but this conflicts with the
   ## type `char` in Nim.
-  satisfy((d: char) => d == c, @[singleton c])
+  satisfy((d: char) => d == c, @[quoted c])
 
 func str*(s: string): Parser[string] {.inline.} =
   ## Build a `Parser` that consumes a given string if present.
@@ -82,7 +82,7 @@ func str*(s: string): Parser[string] {.inline.} =
     pure(s)
   else:
     ch(s[0]) >> str(s[1..^1])
-  ) <?> singleton s
+  ) <?> quoted s
 
 func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
   ## Create a `Parser` that behaves exactly like the given one, but never
