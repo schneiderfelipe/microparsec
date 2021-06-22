@@ -81,6 +81,10 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   ## This is normally used at the end of a set alternatives where we want to
   ## return an error message in terms of a higher level construct rather than
   ## returning all possible characters.
+  ##
+  ## **Note**: In the future, this might become a template, so that functions
+  ## such as `satisfy` won't need a `expected` parameter for performance
+  ## reasons.
   return proc(state: ParseState): ParseResult[T] =
     let res = parser(state)
     if res.isOk:

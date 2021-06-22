@@ -90,10 +90,16 @@ func `<*`*[T, S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
 
 
 let
-  letter*: Parser[char] =
-    satisfy(isAlphaAscii, @["letter"])
-    ## A `Parser` that consumes any letter.
-
   digit*: Parser[char] =
     satisfy(isDigit, @["digit"])
-    ## A `Parser` that consumes any digit.
+    ## A `Parser` that consumes a single digit, as recognised by `isDigit`.
+
+  letter*: Parser[char] =
+    satisfy(isAlphaAscii, @["letter"])
+    ## A `Parser` that consumes a single letter, as recognised by
+    ## `isAlphaAscii`.
+
+  space*: Parser[char] =
+    satisfy(isSpaceAscii, @["space"])
+    ## A `Parser` that consumes a single space character, as recognised by
+    ## `isSpaceAscii`.
