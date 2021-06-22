@@ -14,7 +14,7 @@ import microparsec/combinators
 import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, optional, between, ch, sepBy, sepBy1, many, many1,
+export Parser, ParseResult, optional, anyChar, between, ch, sepBy, sepBy1, many, many1,
     `<|>`, `pure`, `eof`, flatMap, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =
@@ -97,6 +97,3 @@ let
   digit*: Parser[char] =
     satisfy(isDigit, @["digit"])
     ## A `Parser` that consumes any digit.
-
-  anyChar*: Parser[char] =
-    satisfy((_: char) => true, @["any character"])

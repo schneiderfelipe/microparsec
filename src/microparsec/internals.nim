@@ -24,6 +24,10 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
         state.stepBack
         failure[char](quoted c, expected, state)
 
+let anyChar*: Parser[char] =
+  satisfy((_: char) => true, @["any character"])
+  ## A `Parser` that matches any character.
+
 func ch*(c: char): Parser[char] {.inline.} =
   ## Create a `Parser` that matches a specific character.
   ##
