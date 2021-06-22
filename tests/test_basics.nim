@@ -88,7 +88,7 @@ suite "basic character parsers":
     check q.debugParse("") == $(none(char), 0, 0, 0)
 
   test "pure":
-    let p = pure('x')
+    let p = pure 'x'
     check p.debugParse("hello") == $('x', 0, 0, 0)
     check p.debugParse("ello") == $('x', 0, 0, 0)
     check p.debugParse("") == $('x', 0, 0, 0)
@@ -264,7 +264,7 @@ expecting "world" or "joe""""
 suite "parser algebra":
   test "functors":
     let p = anyChar
-    let q = map(p) do (c: char) -> char:
+    let q = map(p) do (c: auto) -> auto:
       toUpperAscii(c)
     check q.debugParse("foo") == $('F', 1, 0, 1)
     check q.debugParse("oo") == $('O', 1, 0, 1)
@@ -299,17 +299,16 @@ suite "parser algebra":
     check dropMiddle.debugParse("pumpkin") == $(('p', 'm'), 3, 0, 3)
 
   test "monads":
-    let p = anyChar
-    let q = p >>= ((c: char) => pure(toUpperAscii(c)))
+    let q = anyChar.flatMap do (c: char) -> auto:
+      pure toUpperAscii(c)
     check q.debugParse("foo") == $('F', 1, 0, 1)
     check q.debugParse("oo") == $('O', 1, 0, 1)
     check q.debugParse("f") == $('F', 1, 0, 1)
     check q.debugParse("") == $((unexpected: "end of input", expected: @[
         "any character"]), 0, 0, 0)
 
-    let dropMiddle = anyChar >>= proc(x: char): auto =
-      anyChar >>
-        anyChar >>= func(z: char): auto =
+    let dropMiddle = anyChar.flatMap do (x: char) -> auto:
+      (anyChar >> anyChar).flatMap do (z: char) -> auto:
         pure (x, z)
     check dropMiddle.debugParse("pumpkin") == $(('p', 'm'), 3, 0, 3)
 

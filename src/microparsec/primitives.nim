@@ -10,10 +10,11 @@ template quoted*(x: auto): string =
   addQuoted(q, x)
   q
 
-func `>>=`*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
+func flatMap*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.
   ##
-  ## This is required in monadic parsing.
+  ## This is the equivalent to `bind` or `>>=` in Haskell, and is required in
+  ## monadic parsing.
   return proc(state: ParseState): ParseResult[T] =
     let res = parser(state)
     if res.isOk:
@@ -80,4 +81,5 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
       failure[T](res.error.unexpected, @[expected], state)
 
 func `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  parser0 >>= ((_: S) => parser1)
+  parser0.flatMap do (_: S) -> Parser[T]:
+    parser1

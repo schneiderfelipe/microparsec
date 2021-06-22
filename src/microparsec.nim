@@ -14,7 +14,7 @@ import microparsec/combinators
 import microparsec/primitives
 import microparsec/types
 export Parser, ParseResult, optional, between, sepBy, sepBy1, many, many1,
-    `<|>`, `pure`, `eof`, `>>=`, `>>`, `<?>`, `$`, debugParse, parse
+    `<|>`, `pure`, `eof`, flatMap, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =
   ## Identity function.
@@ -79,7 +79,7 @@ func str*(s: string): Parser[string] {.inline.} =
   ## This function is called `string` in Parsec, but this conflicts with the
   ## type `string` in Nim.
   (if s == "":
-    pure(s)
+    pure s
   else:
     ch(s[0]) >> str(s[1..^1])
   ) <?> quoted s
