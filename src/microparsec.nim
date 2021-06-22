@@ -11,9 +11,10 @@ import results
 export ok, err, isOk, isErr, `==`
 
 import microparsec/combinators
+import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, optional, between, sepBy, sepBy1, many, many1,
+export Parser, ParseResult, optional, between, ch, sepBy, sepBy1, many, many1,
     `<|>`, `pure`, `eof`, flatMap, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =
@@ -23,25 +24,6 @@ func identity*[T](x: T): T =
 func compose*[R, S, T](f: R -> S, g: S -> T): R -> T {.inline.} =
   ## Compose two functions.
   (x: R) => g(f(x))
-
-# `satisfy` could be defined in terms of anyChar, but I find the following
-# implementation simpler.
-func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
-    char] {.inline.} =
-  ## Create a `Parser` that consumes a single character if it satisfies a
-  ## given predicate.
-  ##
-  ## This is used to build more complex `Parser`s.
-  return proc(state: ParseState): ParseResult[char] =
-    if state.atEnd:
-      failure[char]("end of input", expected, state)
-    else:
-      let c = state.readChar
-      if predicate(c):
-        ParseResult[char].ok(c)
-      else:
-        state.stepBack
-        failure[char](quoted c, expected, state)
 
 func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
@@ -65,13 +47,6 @@ func `<*>`*[S, T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inli
       parser1.map(res0.get)(state)
     else:
       failure[T](res0)
-
-func ch*(c: char): Parser[char] {.inline.} =
-  ## Create a `Parser` that consumes a specific single character if present.
-  ##
-  ## This function is called `char` in Parsec, but this conflicts with the
-  ## type `char` in Nim.
-  satisfy((d: char) => d == c, @[quoted c])
 
 func str*(s: string, t = ""): Parser[string] {.inline.} =
   ## Build a `Parser` that consumes a given string if present.
