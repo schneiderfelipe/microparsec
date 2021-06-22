@@ -9,6 +9,7 @@ type
     ## A `ParsePosition` holds the current column and line numbers, as well
     ## as the position of the start of the current line.
     column, line, currentLine: int
+    atNewLine: bool
 
   ParseError = tuple
     ## A `ParseError` contains what was expected by the `Parser`, what was
@@ -22,7 +23,6 @@ type
     ## A `ParseState` keeps track of the `Stream` and where we are at it.
     stream: Stream
     position, lastPosition: ParsePosition
-    atNewLine: bool
 
   ParseResult*[T] = Result[T, ParseError]
     ## A `ParseResult` of type `T` is a `Result` object with either a parsed
@@ -117,24 +117,25 @@ template readChar*(state: ParseState): char =
   ## Returns '\0' as an EOF marker.
   state.lastPosition = state.position
   let c = state.stream.readChar
-  if not state.atNewLine:
+  if not state.position.atNewLine:
     state.position.column += 1
     if c == '\n':
-      state.atNewLine = true
+      state.position.atNewLine = true
   else:
     if c != '\n':
       if c != '\r':
         # We just consumed the first char of a new line
-        state.position = (column: 1, line: state.position.line + 1,
-            currentLine: state.stream.getPosition - 1)
-        state.atNewLine = false
+        state.position.column = 1
+        state.position.line += 1
+        state.position.currentLine = state.stream.getPosition - 1
+        state.position.atNewLine = false
       else:
         # '\r' is still part of the current line
         state.position.column += 1
     else:
       # We're at the end of an empty line
-      state.position = (column: 0, line: state.position.line + 1,
-          currentLine: state.position.currentLine)
+      state.position.column = 0
+      state.position.line += 1
   c
 
 
