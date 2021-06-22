@@ -39,8 +39,8 @@ suite "basic character parsers":
 
   test "str":
     let p = str("hello")
-    # check p.debugParse("hello") == $("\"hello\"", 5, 0, 5)
-    # check p.debugParse("hello world") == $("\"hello\"", 5, 0, 5)
+    check p.debugParse("hello") == $("hello", 5, 0, 5)
+    check p.debugParse("hello world") == $("hello", 5, 0, 5)
     check p.debugParse("1hello") == $((unexpected: "\'1\'", expected: @[
         "\"hello\""]), 0, 0, 0)
     check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @[

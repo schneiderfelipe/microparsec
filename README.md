@@ -6,7 +6,7 @@ with excellent error messages.
 
 ```nim
 import microparsec
-let p = str("hello") >> many(ch ' ') >> str ("world!")
+let p = str("hello") >> many(ch ' ') >> str("world!")
 p.parse("hello     world?")
 ```
 ```

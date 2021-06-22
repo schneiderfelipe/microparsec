@@ -73,15 +73,16 @@ func ch*(c: char): Parser[char] {.inline.} =
   ## type `char` in Nim.
   satisfy((d: char) => d == c, @[quoted c])
 
-func str*(s: string): Parser[string] {.inline.} =
+func str*(s: string, t = ""): Parser[string] {.inline.} =
   ## Build a `Parser` that consumes a given string if present.
   ##
   ## This function is called `string` in Parsec, but this conflicts with the
   ## type `string` in Nim.
   (if s == "":
-    pure s
+    pure t
   else:
-    ch(s[0]) >> str(s[1..^1])
+    ch(s[0]).flatMap do (c: char) -> Parser[string]:
+      str(s[1..^1], t & c)
   ) <?> quoted s
 
 func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
