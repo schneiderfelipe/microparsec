@@ -5,24 +5,22 @@ import results
 import primitives
 import types
 
-# `satisfy` could be defined in terms of anyChar, but I find the following
-# implementation simpler.
 func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
     char] {.inline.} =
-  ## Create a `Parser` that consumes a single character if it satisfies a
-  ## given predicate.
+  ## Create a `Parser` that succeeds for any character for which a predicate
+  ## returns `true`. Returns the character that is actually parsed.
   ##
   ## This is used to build more complex `Parser`s.
   return proc(state: ParseState): ParseResult[char] =
-    if state.atEnd:
-      failure[char]("end of input", expected, state)
-    else:
-      let c = state.readChar
-      if predicate(c):
-        ParseResult[char].ok(c)
+    if not state.atEnd:
+      let h = state.readChar
+      if predicate(h):
+        ParseResult[char].ok(h)
       else:
         state.stepBack
-        failure[char](quoted c, expected, state)
+        fail[char](quoted h, expected, state, message = "satisfy")
+    else:
+      fail[char]("end of input", expected, state, message = "satisfy")
 
 let anyChar*: Parser[char] =
   satisfy((_: char) => true, @["any character"])

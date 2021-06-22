@@ -34,7 +34,7 @@ func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
     if res.isOk:
       ParseResult[T].ok(f(res.get))
     else:
-      failure[T](res)
+      fail[T](res)
 
 func `<*>`*[S, T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inline.} =
   ## Apply the function parsed by a `Parser` to the result of another
@@ -46,7 +46,7 @@ func `<*>`*[S, T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inli
     if res0.isOk:
       parser1.map(res0.get)(state)
     else:
-      failure[T](res0)
+      fail[T](res0)
 
 func str*(s: string, t = ""): Parser[string] {.inline.} =
   ## Build a `Parser` that consumes a given string if present.

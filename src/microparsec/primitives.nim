@@ -20,7 +20,7 @@ func flatMap*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} 
     if res.isOk:
       f(res.get)(state)
     else:
-      failure[T](res)
+      fail[T](res)
 
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
@@ -34,8 +34,16 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
         res1
       else:
         # Report the last found piece, so that it matches the state
-        failure[T](res1.error.unexpected, res0.error.expected &
-            res1.error.expected, state)
+        let message = if res0.error.message != res1.error.message:
+          res0.error.message & res1.error.message
+        else:
+          res0.error.message
+        fail[T](
+          res1.error.unexpected,
+          res0.error.expected & res1.error.expected,
+          state,
+          message,
+        )
 
 func pure*(): Parser[void] {.inline.} =
   ## Create a `Parser` that returns nothing and consumes nothing. As such,
@@ -78,7 +86,7 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
     if res.isOk:
       res
     else:
-      failure[T](res.error.unexpected, @[expected], state)
+      fail[T](res.error.unexpected, @[expected], state, res.error.message)
 
 func `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   parser0.flatMap do (_: S) -> Parser[T]:

@@ -22,7 +22,9 @@ suite "common use cases":
     check identifier.debugParse("") == $((unexpected: "end of input", expected: @[
         "letter", "digit", "\'_\'"]), 0, 0, 0)
 
-    check $identifier.parse("*123hello_ world") == """0:0:(0):
+    check $identifier.parse("*123hello_ world") == """Failed reading: satisfy
+
+0:0:(0):
   |
 0 | *123hello_ world
   | ^

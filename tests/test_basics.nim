@@ -213,7 +213,9 @@ suite "parsing utilities":
 
   test "error messages":
     let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
-    check $p.parse("f\noo") == """1:2:(4):
+    check $p.parse("f\noo") == """Failed reading: satisfy
+
+1:2:(4):
   |
 1 | oo
   |   ^
@@ -221,7 +223,9 @@ unexpected end of input
 expecting any character"""
 
     let q = anyChar >> ch('a')
-    check $q.parse("hello") == """0:1:(1):
+    check $q.parse("hello") == """Failed reading: satisfy
+
+0:1:(1):
   |
 0 | hello
   |  ^
@@ -230,7 +234,9 @@ expecting 'a'"""
 
     let r = (str("hello") <|> str("hey")) >> many(ch(' ')) >> (str("world") <|>
         str("joe"))
-    check $r.parse("hello  john") == """0:9:(9):
+    check $r.parse("hello  john") == """Failed reading: satisfy
+
+0:9:(9):
   |
 0 | hello  john
   |          ^

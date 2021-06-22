@@ -17,7 +17,7 @@ suite "basic manipulation":
     check ch('i').debugParse(newStringStream("hello")) == ch('i').debugParse("hello")
 
     let s = newParseState("hello")
-    check ch('i').parse(s) == ParseResult[char].err (unexpected: "\'h\'", expected: @["\'i\'"], state: s)
+    check ch('i').parse(s) == ParseResult[char].err (unexpected: "\'h\'", expected: @["\'i\'"], state: s, message: "satisfy")
     check $ch('i').parse(s) == $ch('i').parse("hello")
     check $ch('i').parse(newStringStream("hello")) == $ch('i').parse("hello")
 

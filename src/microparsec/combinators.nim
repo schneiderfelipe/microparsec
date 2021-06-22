@@ -45,7 +45,7 @@ proc eof*(state: ParseState): ParseResult[void] =
   if state.atEnd:
     ParseResult[void].ok()
   else:
-    failure[void](quoted state.peekChar, @["end of input"], state)
+    fail[void](quoted state.peekChar, @["end of input"], state, message = "eof")
 
 func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## A `Parser` that only succeeds when `parser` fails. This parser does not
@@ -58,5 +58,5 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
     if res.isErr:
       ParseResult[void].ok()
     else:
-      failure[void](quoted res.get, @[], state)
+      fail[void](quoted res.get, @[], state, message = "notFollowedBy")
     state.setPosition(position)

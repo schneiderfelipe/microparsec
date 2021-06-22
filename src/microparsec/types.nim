@@ -1,4 +1,6 @@
 import streams
+export atEnd, getPosition, setPosition
+
 import strutils
 import sugar
 
@@ -13,11 +15,12 @@ type
 
   ParseError = tuple
     ## A `ParseError` contains what was expected by the `Parser`, what was
-    ## actually found by it (the unexpected `string`) and the current
-    ## `ParseState`.
+    ## actually found by it (the unexpected `string`), the current
+    ## `ParseState` and an extra message.
     unexpected: string
     expected: seq[string]
     state: ParseState
+    message: string
 
   ParseState* = ref object
     ## A `ParseState` keeps track of the `Stream` and where we are at it.
@@ -32,14 +35,12 @@ type
     ## A `Parser` for a type `T` is a function that receives a `ParseState`
     ## and gives back a `ParseResult` of type `T`.
 
-func failure*[T](unexpected: string, expected: seq[string],
-    state: ParseState): ParseResult[T] {.inline.} =
+func fail*[T](unexpected: string, expected: seq[string],
+    state: ParseState, message = ""): ParseResult[T] {.inline.} =
   ## Stop parsing and report a `ParseError`.
-  ParseResult[T].err(
-    (unexpected, expected, state)
-  )
+  ParseResult[T].err((unexpected, expected, state, message))
 
-func failure*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
+func fail*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
   ## Stop parsing and report the `ParseError` of a `ParseResult`.
   ParseResult[T].err(res.error)
 
@@ -59,6 +60,11 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
       error = res.error
       state = error.state
 
+      heading = if len(error.message) > 0:
+        "Failed reading: " & error.message & "\n\n"
+      else:
+        ""
+
       column = state.position.column
       lineStr = $state.position.line
       margin = indent("|", len(lineStr) + 1)
@@ -77,6 +83,7 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
       unexpectedInfo = "unexpected " & error.unexpected
       expectingInfo = "expecting " & expectedItems
 
+    heading &
     positionInfo & '\n' &
     margin & '\n' &
     lineStr & " | " & offendingLine & '\n' &
@@ -88,7 +95,7 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
     "Got " & $res.get
 
 
-proc atEnd*(state: ParseState): bool {.inline.} =
+template atEnd*(state: ParseState): bool =
   ## Checks if more data can be read from `s`.
   ## Returns `true` if all data has been read.
   state.stream.atEnd
@@ -100,7 +107,7 @@ proc peekChar*(state: ParseState): char {.inline.} =
   state.stream.peekChar
 
 
-proc stepBack*(state: ParseState) {.inline.} =
+template stepBack*(state: ParseState) =
   ## Go a step back.
   state.position = state.lastPosition
   state.stream.setPosition(state.stream.getPosition - 1)
