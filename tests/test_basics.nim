@@ -13,14 +13,6 @@ import strutils
 import microparsec
 
 suite "basic character parsers":
-  test "anyChar":
-    let p = anyChar
-    check p.debugParse("foo") == $('f', 1, 0, 1)
-    check p.debugParse("oo") == $('o', 1, 0, 1)
-    check p.debugParse("f") == $('f', 1, 0, 1)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
-
   test "letter":
     let p = letter
     check p.debugParse("ello") == $('e', 1, 0, 1)
@@ -99,14 +91,6 @@ suite "basic character parsers":
   #   let p = eof
   #   check p.debugParse("") == $(0, 0, 0)
   #   check p.debugParse("hello") == $((unexpected: "\'h\'", expected: @["end of input"]), 0, 0, 0)
-
-  test "ch":
-    let p = ch('h')
-    check p.debugParse("hello") == $('h', 1, 0, 1)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
 
   test "between":
     let p = between(ch('{'), many(digit), ch('}'))

@@ -34,3 +34,7 @@ func ch*(c: char): Parser[char] {.inline.} =
   ## This function is called `char` in Parsec, but this conflicts with the
   ## type `char` in Nim.
   satisfy((d: char) => d == c, @[quoted c])
+
+func notChar*(c: char): Parser[char] {.inline.} =
+  ## Create a `Parser` that matches any character except the given one.
+  satisfy((d: char) => d != c, @["not " & quoted c])

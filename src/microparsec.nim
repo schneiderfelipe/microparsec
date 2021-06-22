@@ -14,7 +14,7 @@ import microparsec/combinators
 import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, optional, anyChar, between, ch, sepBy, sepBy1, many, many1,
+export Parser, ParseResult, optional, anyChar, between, ch, sepBy, sepBy1, many, many1, notChar,
     `<|>`, `pure`, `eof`, flatMap, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =
