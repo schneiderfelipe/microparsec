@@ -5,8 +5,7 @@ import results
 import primitives
 import types
 
-func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
-    char] {.inline.} =
+func satisfy*(p: char -> bool, expected: seq[string] = @[]): Parser[char] {.inline.} =
   ## Create a `Parser` that succeeds for any character for which a predicate
   ## returns `true`. Returns the character that is actually parsed.
   ##
@@ -14,7 +13,7 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
   return proc(state: ParseState): ParseResult[char] =
     if not state.atEnd:
       let h = state.readChar
-      if predicate(h):
+      if p h:
         ParseResult[char].ok(h)
       else:
         state.stepBack
@@ -22,13 +21,13 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
     else:
       fail[char]("end of input", expected, state, message = "satisfy")
 
-func skip*(predicate: char -> bool, expected: seq[string] = @[]): Parser[void] {.inline.} =
+func skip*(p: char -> bool, expected: seq[string] = @[]): Parser[void] {.inline.} =
   ## Create a `Parser` that succeeds for any character for which a predicate
   ## returns `true`.
   return proc(state: ParseState): ParseResult[void] =
     if not state.atEnd:
       let h = state.readChar
-      if predicate(h):
+      if p h:
         ParseResult[void].ok
       else:
         state.stepBack
@@ -36,14 +35,14 @@ func skip*(predicate: char -> bool, expected: seq[string] = @[]): Parser[void] {
     else:
       fail[void]("end of input", expected, state, message = "satisfy")
 
-func satisfyWith*[T](f: char -> T, predicate: T -> bool, expected: seq[string] = @[]): Parser[T] {.inline.} =
+func satisfyWith*[T](f: char -> T, p: T -> bool, expected: seq[string] = @[]): Parser[T] {.inline.} =
   ## Create a `Parser` that transforms a character, and succeeds if a
   ## predicate returns `true` on the transformed value. The parser returns the
   ## transformed character that was parsed.
   return proc(state: ParseState): ParseResult[T] =
     if not state.atEnd:
       let c = f state.readChar
-      if predicate(c):
+      if p c:
         ParseResult[T].ok(c)
       else:
         state.stepBack
