@@ -13,19 +13,21 @@ export ok, err, isOk, isErr, `==`
 import microparsec/combinators
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, optional, between, sepBy, sepBy1, many, many1, `<|>`, `pure`, `eof`, `>>=`, `>>`, `<?>`, `$`, debugParse, parse
+export Parser, ParseResult, optional, between, sepBy, sepBy1, many, many1,
+    `<|>`, `pure`, `eof`, `>>=`, `>>`, `<?>`, `$`, debugParse, parse
 
 func identity*[T](x: T): T =
   ## Identity function.
   x
 
-func compose*[R,S,T](f: R -> S, g: S -> T): R -> T {.inline.} =
+func compose*[R, S, T](f: R -> S, g: S -> T): R -> T {.inline.} =
   ## Compose two functions.
   (x: R) => g(f(x))
 
 # `satisfy` could be defined in terms of anyChar, but I find the following
 # implementation simpler.
-func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[char] {.inline.} =
+func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[
+    char] {.inline.} =
   ## Create a `Parser` that consumes a single character if it satisfies a
   ## given predicate.
   ##
@@ -41,7 +43,7 @@ func satisfy*(predicate: char -> bool, expected: seq[string] = @[]): Parser[char
         state.stepBack
         failure[char](singleton c, expected, state)
 
-func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
+func fmap*[S, T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
   ##
   ## This is required in "functor" parsing.
@@ -52,7 +54,7 @@ func fmap*[S,T](f: S -> T, parser: Parser[S]): Parser[T] {.inline.} =
     else:
       failure[T](res)
 
-func `<*>`*[S,T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inline.} =
+func `<*>`*[S, T](parser0: Parser[S -> T], parser1: Parser[S]): Parser[T] {.inline.} =
   ## Apply the function parsed by a `Parser` to the result of another
   ## `Parser`.
   ##
@@ -95,15 +97,15 @@ func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
     else:
       ParseResult[Option[T]].ok(none(T))
 
-func `<$`*[S,T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
+func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   fmap((_: S) => x, parser)
 
-func `*>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
+func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
     discard parser0(state)
     parser1(state)
 
-func `<*`*[T,S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
+func `<*`*[T, S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
     result = parser0(state)
     if result.isOk:

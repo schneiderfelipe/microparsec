@@ -11,7 +11,8 @@ func optional*[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## never fails. The result of `parser` is discarded.
   parser >> pure() <|> pure()
 
-func between*[R,S,T](open: Parser[R], parser: Parser[T], close: Parser[S]): Parser[T] {.inline.} =
+func between*[R, S, T](open: Parser[R], parser: Parser[T], close: Parser[
+    S]): Parser[T] {.inline.} =
   ## Create a `Parser` that parses `open`, followed by `parser` and then
   ## `close`, returning the value given by `parser`.
   open >> parser >>= (
@@ -27,7 +28,7 @@ func many1*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
     )
   )
 
-func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
+func sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
   ## Create a `Parser` that parses a sequence of *one* or more occurrences of
   ## `parser`, separated by `separator`.
   parser >>= (
@@ -36,7 +37,7 @@ func sepBy1*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inl
     )
   )
 
-func sepBy*[S,T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
+func sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
   ## Create a `Parser` that parses a sequence of *zero* or more occurrences of
   ## `parser`, separated by `separator`.
   sepBy1(parser, separator) <|> pure[seq[T]](@[])

@@ -10,7 +10,7 @@ func singleton*(c: char): string =
 func singleton*(c: string): string =
   '\"' & c & '\"'
 
-func `>>=`*[S,T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
+func `>>=`*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.
   ##
   ## This is required in monadic parsing.
@@ -33,7 +33,8 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
         res1
       else:
         # Report the last found piece, so that it matches the state
-        failure[T](res1.error.unexpected, res0.error.expected & res1.error.expected, state)
+        failure[T](res1.error.unexpected, res0.error.expected &
+            res1.error.expected, state)
 
 func pure*(): Parser[void] {.inline.} =
   ## Create a `Parser` that returns nothing and consumes nothing. As such,
@@ -78,5 +79,5 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
     else:
       failure[T](res.error.unexpected, @[expected], state)
 
-func `>>`*[S,T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
+func `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   parser0 >>= ((_: S) => parser1)
