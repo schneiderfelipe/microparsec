@@ -35,10 +35,10 @@ type
     ## A `Parser` for a type `T` is a function that receives a `ParseState`
     ## and gives back a `ParseResult` of type `T`.
 
-func fail*[T](unexpected: string, expected: seq[string],
+func fail*[T](unexpected: string, expected: openArray[string],
     state: ParseState, message = ""): ParseResult[T] {.inline.} =
   ## Stop parsing and report a `ParseError`.
-  ParseResult[T].err (unexpected, expected, state, message)
+  ParseResult[T].err (unexpected, @expected, state, message)
 
 func fail*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
   ## Stop parsing and report the `ParseError` of a `ParseResult`.

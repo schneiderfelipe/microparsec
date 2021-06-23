@@ -35,7 +35,7 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
     if res.isOk:
       res
     else:
-      fail[T](res.error.unexpected, @[expected], state, res.error.message)
+      fail[T](res.error.unexpected, [expected], state, res.error.message)
 
 func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
   ## A `Parser` that tries to apply the actions in a list in order, until one
@@ -116,7 +116,7 @@ proc eof*(state: ParseState): ParseResult[void] =
   if state.atEnd:
     ParseResult[void].ok
   else:
-    fail[void](quoted state.peekChar, @["end of input"], state, message = "eof")
+    fail[void](quoted state.peekChar, ["end of input"], state, message = "eof")
 
 func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## A `Parser` that only succeeds when `parser` fails. This parser does not
@@ -129,5 +129,5 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
     if res.isErr:
       ParseResult[void].ok
     else:
-      fail[void](quoted res.get, @[], state, message = "notFollowedBy")
+      fail[void](quoted res.get, [], state, message = "notFollowedBy")
     state.setPosition(position)
