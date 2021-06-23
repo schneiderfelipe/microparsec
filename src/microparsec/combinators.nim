@@ -87,12 +87,23 @@ template many1*[T](parser: Parser[T]): Parser[seq[T]] =
   ## Returns a sequence of the parsed values.
   liftA2((x: T, xs: seq[T]) => x & xs, parser, many parser)
 
+template sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
+  ## A `Parser` that applies *zero* or more occurrences of `parser`, separated
+  ## by `separator`. Returns a list of the values returned by `parser`.
+  ##
+  ## **Note**: Attoparsec's implementation seems to be too complicated,
+  ## (unnecessarily?) testing for a first occurrence. Maybe there's a
+  ## performance reason, I don't know. Ours might be simpler, but there might
+  ## be a catch somewhere. In any case, tests pass. Be advised, and report any
+  ## issue you might find!
+  option(newSeq[T](), sepBy1(parser, separator))
+
 func manyTill*[S, T](parser: Parser[T], endparser: Parser[S]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies an action *zero* or more times until another
   ## action succeeds, and returns the list of values returned by the first
   ## action.
   ##
-  ## **Note**: error messages are not good enough yet, but the current
+  ## **Note**: Error messages are not good enough yet, but the current
   ## implementation is comparable to Attoparsec's.
   return func(state: ParseState): ParseResult[seq[T]] =
     var
@@ -116,7 +127,7 @@ func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
   ## result.
   ##
-  ## **Note**: this short circuits in case of errors.
+  ## **Note**: This short circuits in case of errors.
   return func(state: ParseState): ParseResult[seq[T]] =
     var
       value: ParseResult[T]
@@ -154,11 +165,6 @@ template sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] 
   parser.flatMap do (x: T) -> Parser[seq[T]]:
     many(separator >> parser).flatMap do (xs: seq[T]) -> Parser[seq[T]]:
       pure x & xs
-
-template sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
-  ## Create a `Parser` that parses a sequence of *zero* or more occurrences of
-  ## `parser`, separated by `separator`.
-  option(newSeq[T](), sepBy1(parser, separator))
 
 template anyToken(state: ParseState): ParseResult[char] =
   ## A `Parser` that accepts any kind of token and returns the accepted token.

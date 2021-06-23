@@ -130,27 +130,6 @@ suite "basic character parsers":
     check q.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'{\'"]), 0, 0, 0)
 
-  test "sepBy":
-    let p = sepBy(many1(digit), ch(','))
-    check p.debugParse("1,2,3,4") == $(@[@['1'], @['2'], @['3'], @['4']], 7, 0, 7)
-    check p.debugParse("11,22") == $(@[@['1', '1'], @['2', '2']], 5, 0, 5)
-    # Observe how forgiving is that. Also observe how greedy that is.
-    check p.debugParse("11 ,22") == $(@[@['1', '1']], 2, 0, 2)
-    check p.debugParse("11, 22") == $(@[@['1', '1']], 3, 0, 3)
-    check p.debugParse("11,,22") == $(@[@['1', '1']], 3, 0, 3)
-    check p.debugParse(",") == $(newSeq[seq[char]](), 0, 0, 0)
-    check p.debugParse("") == $(newSeq[seq[char]](), 0, 0, 0)
-    # check p.debugParse("1,2,3,4") == $(@["\'1\'", "\'2\'", "\'3\'", "\'4\'"], 7, 0, 7)
-    # check p.debugParse("") == $((unexpected: "end of input", expected: @["\'{\'"]), 0, 0, 0)
-
-
-    # If you think sepBy should not be eager, think again: it should. See
-    # <https://github.com/mrkkrp/megaparsec/issues/401#issue-572499736>,
-    # whose example is reproduced below.
-    func foo[R, S, T](p: Parser[R], sep: Parser[S], q: Parser[T]): Parser[void] =
-      sepBy(p, sep) >> optional(sep >> q)
-    check foo(str("a"), str(" "), str("b")).debugParse("a a b") == $(4, 0, 4)
-
   test "sepBy1":
     let p = sepBy1(many1(digit), ch(','))
     check p.debugParse("1,2,3,4") == $(@[@['1'], @['2'], @['3'], @['4']], 7, 0, 7)

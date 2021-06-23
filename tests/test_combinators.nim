@@ -6,12 +6,12 @@ let cases = ["hello", "ehllo", "ello", "hllo", "llo", ""]
 
 suite "basic combinators":
   test "attempt":
-    let p = ch('h')
+    let p = ch 'h'
     for s in cases:
-      check attempt(p).debugParse(s) == p.debugParse(s)
+      check attempt(p).debugParse(s) == p.debugParse s
 
   test "<?>":
-    let p = "if" <$ (ch('i') >> ch('f')) <?> "if statement"
+    let p = "if" <$ (ch('i') >> ch 'f') <?> "if statement"
     check p.debugParse("if 1 > 0") == $("if", 2, 0, 2)
     check p.debugParse("f 1 > 0") == $((unexpected: "\'f\'", expected: @[
         "if statement"]), 0, 0, 0)
@@ -20,25 +20,25 @@ suite "basic combinators":
 
   test "choice":
     let
-      pc1 = choice([ch('h')])
-      pb1 = ch('h')
+      pc1 = choice([ch 'h'])
+      pb1 = ch 'h'
     for s in cases:
-      check pc1.debugParse(s) == pb1.debugParse(s)
+      check pc1.debugParse(s) == pb1.debugParse s
 
     let
-      pc2 = choice([ch('h'), ch('e')])
-      pb2 = ch('h') <|> ch('e')
+      pc2 = choice([ch 'h', ch 'e'])
+      pb2 = ch('h') <|> ch 'e'
     for s in cases:
-      check pc2.debugParse(s) == pb2.debugParse(s)
+      check pc2.debugParse(s) == pb2.debugParse s
 
     let
-      pc3 = choice([ch('h'), ch('e'), ch('l')])
-      pb3 = ch('h') <|> ch('e') <|> ch('l')
+      pc3 = choice([ch 'h', ch 'e', ch 'l'])
+      pb3 = ch('h') <|> ch('e') <|> ch 'l'
     for s in cases:
-      check pc3.debugParse(s) == pb3.debugParse(s)
+      check pc3.debugParse(s) == pb3.debugParse s
 
   test "option":
-    let p = option('c', ch('a'))
+    let p = option('c', ch 'a')
     check p.debugParse("aa") == $('a', 1, 0, 1)
     check p.debugParse("a") == $('a', 1, 0, 1)
     check p.debugParse("ba") == $('c', 0, 0, 0)
@@ -46,7 +46,7 @@ suite "basic combinators":
     check p.debugParse("") == $('c', 0, 0, 0)
 
   test "many1":
-    let p = many1(ch('h'))
+    let p = many1(ch 'h')
     # Both `seq[char]` and `string` work! Very useful! But structural matching
     # does not work (such as comparing tuples and one of the fields are
     # seq[char]/string! We need to specialize some functions to return string
@@ -60,15 +60,32 @@ suite "basic combinators":
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'h\'"]), 0, 0, 0)
 
+  test "sepBy":
+    let p = sepBy(many1 digit, ch ',')
+    check p.debugParse("1,2,3,4") == $(@[@['1'], @['2'], @['3'], @['4']], 7, 0, 7)
+    check p.debugParse("11,22") == $(@[@['1', '1'], @['2', '2']], 5, 0, 5)
+
+    check p.debugParse("11 ,22") == $(@[@['1', '1']], 2, 0, 2)
+    check p.debugParse("11, 22") == $(@[@['1', '1']], 3, 0, 3)
+    check p.debugParse("11,,22") == $(@[@['1', '1']], 3, 0, 3)
+    check p.debugParse(",") == $(newSeq[seq[char]](), 0, 0, 0)
+    check p.debugParse("") == $(newSeq[seq[char]](), 0, 0, 0)
+
+    # The example below is from
+    # <https://github.com/mrkkrp/megaparsec/issues/401#issue-572499736>.
+    func foo[R, S, T](p: Parser[R], sep: Parser[S], q: Parser[T]): Parser[void] =
+      sepBy(p, sep) >> optional(sep >> q)
+    check foo(str "a", str " ", str "b").debugParse("a a b") == $(4, 0, 4)
+
   test "manyTill":
-    let p = manyTill(many(space) *> digit, ch('.'))
+    let p = manyTill(many(space) *> digit, ch '.')
     check p.debugParse("1 2  3\n4.") == $(@['1', '2', '3', '4'], 9, 1, 2)
     check p.debugParse("1 2  a\n4.") == $((unexpected: "\'a\'", expected: @[
         "digit"]), 5, 0, 5)
     check p.debugParse("1 2  3\n4") == $((unexpected: "end of input",
         expected: @["digit"]), 8, 1, 1)
 
-    let simpleComment = str("<!--") *> manyTill(anyChar, str("-->"))
+    let simpleComment = str("<!--") *> manyTill(anyChar, str "-->")
     check simpleComment.debugParse("<!-- a -->") == $(@[' ', 'a', ' '], 10, 0, 10)
     check simpleComment.debugParse("<!-- a") == $((unexpected: "end of input",
         expected: @["any character"]), 6, 0, 6)
@@ -78,13 +95,13 @@ suite "basic combinators":
         expected: @["any character"]), 0, 0, 0)
 
   test "count":
-    let p = count(1, ch('a'))
+    let p = count(1, ch 'a')
     check p.debugParse("aa") == $(@['a'], 1, 0, 1)
     check p.debugParse("a") == $(@['a'], 1, 0, 1)
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'a\'"]), 0, 0, 0)
 
-    let q = count(2, ch('a'))
+    let q = count(2, ch 'a')
     check q.debugParse("aa") == $(@['a', 'a'], 2, 0, 2)
     check q.debugParse("ab") == $((unexpected: "\'b\'", expected: @["\'a\'"]),
         1, 0, 1)
