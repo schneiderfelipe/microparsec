@@ -30,6 +30,34 @@ suite "single character parsers":
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "ord(x) < 97"]), 0, 0, 0)
 
+  test "inClass":
+    let
+      vowel = inClass "aeiou"
+      p = (satisfy vowel) <?> "vowel"
+    check p.debugParse("foo") == $((unexpected: "\'f\'", expected: @["vowel"]), 0, 0, 0)
+    check p.debugParse("oo") == $('o', 1, 0, 1)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @["vowel"]), 0, 0, 0)
+
+    let
+      halfAlphabet = inClass {'a'..'n', 'A'..'N'}
+      q = (satisfy halfAlphabet) <?> "in half alphabet"
+    check q.debugParse("foo") == $('f', 1, 0, 1)
+    check q.debugParse("oo") == $((unexpected: "\'o\'", expected: @["in half alphabet"]), 0, 0, 0)
+
+  test "notInClass":
+    let
+      noVowel = notInClass "aeiou"
+      p = (satisfy noVowel) <?> "no vowel"
+    check p.debugParse("foo") == $('f', 1, 0, 1)
+    check p.debugParse("oo") == $((unexpected: "\'o\'", expected: @["no vowel"]), 0, 0, 0)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @["no vowel"]), 0, 0, 0)
+
+    let
+      notHalfAlphabet = notInClass {'a'..'n', 'A'..'N'}
+      q = (satisfy notHalfAlphabet) <?> "not in half alphabet"
+    check q.debugParse("foo") == $((unexpected: "\'f\'", expected: @["not in half alphabet"]), 0, 0, 0)
+    check q.debugParse("oo") == $('o', 1, 0, 1)
+
   test "anyChar":
     let p = anyChar
     check p.debugParse("foo") == $('f', 1, 0, 1)

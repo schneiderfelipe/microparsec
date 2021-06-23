@@ -52,6 +52,16 @@ func satisfyWith*[T](f: char -> T, p: T -> bool, expected: seq[string] = @[]): P
     else:
       fail[T]("end of input", expected, state, message = "satisfyWith")
 
+func inClass*[T](s: T): (char -> bool) =
+  ## Match any character in a set.
+  return proc(c: char): bool =
+    c in s
+
+func notInClass*[T](s: T): (char -> bool) =
+  ## Match any character not in a set.
+  return proc(c: char): bool =
+    c notin s
+
 let anyChar*: Parser[char] =
   satisfy((_: char) => true, @["any character"])
   ## A `Parser` that matches any character.

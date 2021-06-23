@@ -14,10 +14,10 @@ import microparsec/combinators
 import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, optional, anyChar, between, ch, satisfy, skip,
-  satisfyWith, peekCh, peekChF, sepBy, sepBy1, many, many1, notChar, `<|>`,
-  pure, eof, flatMap, `>>`, `<?>`, `$`, debugParse, parse, atEnd,
-  setPosition, getPosition
+export Parser, ParseResult, optional, inClass, notInClass, anyChar, between,
+  ch, satisfy, skip, satisfyWith, peekCh, peekChF, sepBy, sepBy1, many, many1,
+  notChar, `<|>`, pure, eof, flatMap, `>>`, `<?>`, `$`, debugParse, parse,
+  atEnd, setPosition, getPosition
 
 func identity*[T](x: T): T =
   ## Identity function.
