@@ -16,9 +16,9 @@ import microparsec/primitives
 import microparsec/types
 export Parser, ParseResult, identity, compose, optional, inClass, notInClass,
   anyChar, between, ch, satisfy, skip, satisfyWith, peekCh, peekChF, sepBy,
-  sepBy1, many, many1, notChar, `<|>`, liftA2, pure, eof, flatMap, `>>`, `$`,
-  debugParse, parse, atEnd, setPosition, getPosition, attempt, `<?>`, choice,
-  option, count
+  sepBy1, many, many1, notChar, `<|>`, `*>`, liftA2, pure, eof, flatMap,
+  `>>`, `$`, debugParse, parse, atEnd, setPosition, getPosition, attempt,
+  `<?>`, choice, option, manyTill, count
 
 func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
@@ -57,11 +57,6 @@ func str*(s: string, t = ""): Parser[string] {.inline.} =
 
 func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   parser.map constant[S, T]x
-
-func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  return func(state: ParseState): ParseResult[T] =
-    discard parser0 state
-    parser1 state
 
 func `<*`*[T, S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =

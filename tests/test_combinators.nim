@@ -60,6 +60,23 @@ suite "basic combinators":
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'h\'"]), 0, 0, 0)
 
+  test "manyTill":
+    let p = manyTill(many(space) *> digit, ch('.'))
+    check p.debugParse("1 2  3\n4.") == $(@['1', '2', '3', '4'], 9, 1, 2)
+    check p.debugParse("1 2  a\n4.") == $((unexpected: "\'a\'", expected: @[
+        "digit"]), 5, 0, 5)
+    check p.debugParse("1 2  3\n4") == $((unexpected: "end of input",
+        expected: @["digit"]), 8, 1, 1)
+
+    let simpleComment = str("<!--") *> manyTill(anyChar, str("-->"))
+    check simpleComment.debugParse("<!-- a -->") == $(@[' ', 'a', ' '], 10, 0, 10)
+    check simpleComment.debugParse("<!-- a") == $((unexpected: "end of input",
+        expected: @["any character"]), 6, 0, 6)
+    check simpleComment.debugParse("a -->") == $(@['a', ' '], 5, 0, 5)
+    check simpleComment.debugParse("-->") == $(newSeq[char](), 3, 0, 3)
+    check simpleComment.debugParse("") == $((unexpected: "end of input",
+        expected: @["any character"]), 0, 0, 0)
+
   test "count":
     let p = count(1, ch('a'))
     check p.debugParse("aa") == $(@['a'], 1, 0, 1)

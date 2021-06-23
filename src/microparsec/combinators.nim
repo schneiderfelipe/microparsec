@@ -87,6 +87,31 @@ template many1*[T](parser: Parser[T]): Parser[seq[T]] =
   ## Returns a sequence of the parsed values.
   liftA2((x: T, xs: seq[T]) => x & xs, parser, many parser)
 
+func manyTill*[S, T](parser: Parser[T], endparser: Parser[S]): Parser[seq[T]] {.inline.} =
+  ## A `Parser` that applies an action *zero* or more times until another
+  ## action succeeds, and returns the list of values returned by the first
+  ## action.
+  ##
+  ## **Note**: error messages are not good enough yet, but the current
+  ## implementation is comparable to Attoparsec's.
+  return func(state: ParseState): ParseResult[seq[T]] =
+    var
+      quit: ParseResult[S]
+      value: ParseResult[T]
+      values: seq[T]
+    while (quit = endparser state; quit.isErr):
+      value = parser state
+      if value.isOk:
+        values.add value.get
+      else:
+        return fail[seq[T]](
+          value.error.unexpected,
+          value.error.expected,
+          state,
+          value.error.message,
+        )
+    ParseResult[seq[T]].ok values
+
 func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
   ## result.

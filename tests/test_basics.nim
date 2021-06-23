@@ -78,6 +78,18 @@ suite "basic character parsers":
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "letter"]), 0, 0, 0)
 
+    let q = liftA2((x: int, c: char) => (x, c), letter.map(c => ord(c) - ord(
+        'a')), digit)
+    check q.debugParse("hello") == $((unexpected: "\'e\'", expected: @[
+        "digit"]), 1, 0, 1)
+    check q.debugParse("ello") == $((unexpected: "\'l\'", expected: @["digit"]),
+        1, 0, 1)
+    check q.debugParse("1ello") == $((unexpected: "\'1\'", expected: @[
+        "letter"]), 0, 0, 0)
+    check q.debugParse("h2llo") == $((7, '2'), 2, 0, 2)
+    check q.debugParse("") == $((unexpected: "end of input", expected: @[
+        "letter"]), 0, 0, 0)
+
   # Can't compare `ok`s due to a bug, see <https://github.com/arnetheduck/nim-result/issues/16>.
   # BUG: does not work in Nim 1.2.6.
   # test "eof":

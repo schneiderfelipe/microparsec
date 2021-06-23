@@ -39,6 +39,11 @@ func pure*[T](x: T): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
     ParseResult[T].ok x
 
+func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
+  return func(state: ParseState): ParseResult[T] =
+    discard parser0 state
+    parser1 state
+
 func liftA2*[R, S, T](f: (R, S) -> T, parser0: Parser[R], parser1: Parser[
     S]): Parser[T] {.inline.} =
   ## Lift a binary function to actions.
