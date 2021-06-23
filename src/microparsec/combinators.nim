@@ -3,6 +3,38 @@ import results
 import primitives
 import types
 
+func attempt*[T](parser: Parser[T]): Parser[T] {.inline.} =
+  ## Create a `Parser` that attempts a parse, and if it fails, rewind the
+  ## input so that no input appears to have been consumed.
+  ##
+  ## This function is called `try` in Parsec, but this conflicts with the
+  ## `try` keyword in Nim.
+  ##
+  ## This combinator is provided for compatibility with Parsec. We follow
+  ## Attoparsec's implementation, which always backtracks on failure.
+  ##
+  ## **Note**: We mean to deprecate this function once we're past 0.1 or so.
+  parser
+
+func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
+  ## Build a `Parser` that behaves as `parser`, but whenever `parser` fails,
+  ## it replaces expect error messages with `expected`. As such, this function
+  ## effectively names a parser, in case failure occurs.
+  ##
+  ## This is normally used at the end of a set alternatives where we want to
+  ## return an error message in terms of a higher level construct rather than
+  ## returning all possible characters.
+  ##
+  ## **Note**: In the future, this might become a template, so that functions
+  ## such as `satisfy` won't need a `expected` parameter for performance
+  ## reasons.
+  return proc(state: ParseState): ParseResult[T] =
+    let res = parser(state)
+    if res.isOk:
+      res
+    else:
+      fail[T](res.error.unexpected, @[expected], state, res.error.message)
+
 func optional*[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## Create a `Parser` that tries to apply `parser`. It might consume input if
   ## `parser` is successful and consumes input. And due to backtracking, it

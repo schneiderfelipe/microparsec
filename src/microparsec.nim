@@ -17,7 +17,7 @@ import microparsec/types
 export Parser, ParseResult, optional, inClass, notInClass, anyChar, between,
   ch, satisfy, skip, satisfyWith, peekCh, peekChF, sepBy, sepBy1, many, many1,
   notChar, `<|>`, pure, eof, flatMap, `>>`, `<?>`, `$`, debugParse, parse,
-  atEnd, setPosition, getPosition
+  atEnd, setPosition, getPosition, attempt
 
 func identity*[T](x: T): T =
   ## Identity function.
@@ -61,19 +61,6 @@ func str*(s: string, t = ""): Parser[string] {.inline.} =
     ch(s[0]).flatMap do (c: char) -> Parser[string]:
       str(s[1..^1], t & c)
   ) <?> quoted s
-
-func attempt*[T](parser: Parser[T]): Parser[Option[T]] {.inline.} =
-  ## Create a `Parser` that behaves exactly like the given one, but never
-  ## fails. The failure state is modeled as an `Option` of type `T`.
-  ##
-  ## This function is called `try` in Parsec, but this conflicts with the
-  ## `try` keyword in Nim.
-  return proc(state: ParseState): ParseResult[Option[T]] =
-    let res = parser(state)
-    if res.isOk:
-      ParseResult[Option[T]].ok some(res.get)
-    else:
-      ParseResult[Option[T]].ok none(T)
 
 func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   parser.map do (_: S) -> T:

@@ -75,17 +75,6 @@ suite "basic character parsers":
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'h\'"]), 0, 0, 0)
 
-  test "attempt":
-    let p = attempt(ch('h'))
-    check p.debugParse("hello") == $(some('h'), 1, 0, 1)
-    check p.debugParse("ello") == $(none(char), 0, 0, 0)
-    check p.debugParse("") == $(none(char), 0, 0, 0)
-
-    let q = attempt(ch('h') <|> ch('e'))
-    check q.debugParse("hello") == $(some('h'), 1, 0, 1)
-    check q.debugParse("ello") == $(some('e'), 1, 0, 1)
-    check q.debugParse("") == $(none(char), 0, 0, 0)
-
   test "pure":
     let p = pure 'x'
     check p.debugParse("hello") == $('x', 0, 0, 0)
@@ -305,12 +294,3 @@ suite "parser combinators":
         0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'h\'"]), 0, 0, 0)
-
-suite "custom error messages":
-  test "<?>":
-    let p = "if" <$ (ch('i') >> ch('f')) <?> "if statement"
-    check p.debugParse("if 1 > 0") == $("if", 2, 0, 2)
-    check p.debugParse("f 1 > 0") == $((unexpected: "\'f\'", expected: @[
-        "if statement"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "if statement"]), 0, 0, 0)

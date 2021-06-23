@@ -74,24 +74,6 @@ func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
         elems.add(res.get)
     ParseResult[seq[T]].ok elems
 
-func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
-  ## Build a `Parser` that behaves as `parser`, but whenever `parser` fails,
-  ## it replaces expect error messages with `expected`.
-  ##
-  ## This is normally used at the end of a set alternatives where we want to
-  ## return an error message in terms of a higher level construct rather than
-  ## returning all possible characters.
-  ##
-  ## **Note**: In the future, this might become a template, so that functions
-  ## such as `satisfy` won't need a `expected` parameter for performance
-  ## reasons.
-  return proc(state: ParseState): ParseResult[T] =
-    let res = parser(state)
-    if res.isOk:
-      res
-    else:
-      fail[T](res.error.unexpected, @[expected], state, res.error.message)
-
 func `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   parser0.flatMap do (_: S) -> Parser[T]:
     parser1
