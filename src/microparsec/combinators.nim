@@ -5,7 +5,7 @@ import results
 import primitives
 import types
 
-func attempt*[T](parser: Parser[T]): Parser[T] {.inline.} =
+template attempt*[T](parser: Parser[T]): Parser[T] =
   ## Create a `Parser` that attempts a parse, and if it fails, rewind the
   ## input so that no input appears to have been consumed.
   ##
@@ -30,14 +30,14 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   ## **Note**: In the future, this might become a template, so that functions
   ## such as `satisfy` won't need a `expected` parameter for performance
   ## reasons.
-  return proc(state: ParseState): ParseResult[T] =
+  return func(state: ParseState): ParseResult[T] =
     let res = parser(state)
     if res.isOk:
       res
     else:
       fail[T](res.error.unexpected, [expected], state, res.error.message)
 
-func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
+func choice*[T](parsers: openArray[Parser[T]]): Parser[T] {.inline.} =
   ## A `Parser` that tries to apply the actions in a list in order, until one
   ## of them succeeds. Returns the value of the succeeding action.
   ##
@@ -52,7 +52,7 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
   # <https://github.com/nim-lang/Nim/issues/17187>.
   let parsers = @parsers
 
-  return proc(state: ParseState): ParseResult[T] =
+  return func(state: ParseState): ParseResult[T] =
     # We could use OrderedSet[string] in the future
     var expecteds, messages: seq[string]
     for parser in parsers:
@@ -75,7 +75,13 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
       join(messages),
     )
 
-func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] =
+template option*[T](x: T, parser: Parser[T]): Parser[T] =
+  ## A `Parser` that tries to apply an action. If it fails without consuming
+  ## input, it returns the value `x`, otherwise the value returned by the
+  ## action.
+  parser <|> pure x
+
+func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
   ## result.
   ##
@@ -98,43 +104,43 @@ func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] =
         )
     return ParseResult[seq[T]].ok values
 
-func optional*[T](parser: Parser[T]): Parser[void] {.inline.} =
+template optional*[T](parser: Parser[T]): Parser[void] =
   ## Create a `Parser` that tries to apply `parser`. It might consume input if
   ## `parser` is successful and consumes input. And due to backtracking, it
   ## never fails. The result of `parser` is discarded.
   parser >> pure() <|> pure()
 
-func between*[R, S, T](open: Parser[R], parser: Parser[T], close: Parser[
-    S]): Parser[T] {.inline.} =
+template between*[R, S, T](open: Parser[R], parser: Parser[T], close: Parser[
+    S]): Parser[T] =
   ## Create a `Parser` that parses `open`, followed by `parser` and then
   ## `close`, returning the value given by `parser`.
   (open >> parser).flatMap do (x: T) -> Parser[T]:
     close >> pure x
 
-func many1*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
+template many1*[T](parser: Parser[T]): Parser[seq[T]] =
   ## Build a `Parser` that applies another `Parser` *one* or more times and
   ## returns a sequence of the parsed values.
   parser.flatMap do (x: T) -> Parser[seq[T]]:
     many(parser).flatMap do (xs: seq[T]) -> Parser[seq[T]]:
       pure x & xs
 
-func sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
+template sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
   ## Create a `Parser` that parses a sequence of *one* or more occurrences of
   ## `parser`, separated by `separator`.
   parser.flatMap do (x: T) -> Parser[seq[T]]:
     many(separator >> parser).flatMap do (xs: seq[T]) -> Parser[seq[T]]:
       pure x & xs
 
-func sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
+template sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
   ## Create a `Parser` that parses a sequence of *zero* or more occurrences of
   ## `parser`, separated by `separator`.
-  sepBy1(parser, separator) <|> pure[seq[T]](@[])
+  option(newSeq[T](), sepBy1(parser, separator))
 
-proc anyToken(state: ParseState): ParseResult[char] {.inline.} =
+template anyToken(state: ParseState): ParseResult[char] =
   ## A `Parser` that accepts any kind of token and returns the accepted token.
   ParseResult[char].ok state.readChar
 
-proc eof*(state: ParseState): ParseResult[void] =
+template eof*(state: ParseState): ParseResult[void] =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
   if state.atEnd:

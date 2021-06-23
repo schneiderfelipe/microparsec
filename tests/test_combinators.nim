@@ -37,6 +37,14 @@ suite "basic combinators":
     for s in cases:
       check pc3.debugParse(s) == pb3.debugParse(s)
 
+  test "option":
+    let p = option('c', ch('a'))
+    check p.debugParse("aa") == $('a', 1, 0, 1)
+    check p.debugParse("a") == $('a', 1, 0, 1)
+    check p.debugParse("ba") == $('c', 0, 0, 0)
+    check p.debugParse("b") == $('c', 0, 0, 0)
+    check p.debugParse("") == $('c', 0, 0, 0)
+
   test "count":
     let p = count(1, ch('a'))
     check p.debugParse("aa") == $(@['a'], 1, 0, 1)
