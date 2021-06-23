@@ -10,6 +10,29 @@ template quoted*(x: auto): string =
   addQuoted(q, x)
   q
 
+func pure*: Parser[void] {.inline.} =
+  ## Create a `Parser` that returns nothing and consumes nothing. As such,
+  ## it never fails.
+  ##
+  ## This is required in both applicative and monadic parsers.
+  return proc(state: ParseState): ParseResult[void] =
+    ParseResult[void].ok
+
+func pure*[T](x: T): Parser[T] {.inline.} =
+  ## Create a `Parser` that always return `x`, but consumes nothing. As such,
+  ## it never fails.
+  ##
+  ## This is required in both applicative and monadic parsers.
+  return proc(state: ParseState): ParseResult[T] =
+    ParseResult[T].ok x
+
+func liftA2*[R, S, T](f: (R, S) -> T, parser0: Parser[R], parser1: Parser[
+    S]): Parser[T] {.inline.} =
+  ## Lift a binary function to actions.
+  parser0.flatMap do (x: R) -> Parser[T]:
+    parser1.flatMap do (y: S) -> Parser[T]:
+      pure f(x, y)
+
 func flatMap*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} =
   ## Pass the result of a `Parser` to a function that returns another `Parser`.
   ##
@@ -45,22 +68,6 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
           message,
         )
 
-func pure*: Parser[void] {.inline.} =
-  ## Create a `Parser` that returns nothing and consumes nothing. As such,
-  ## it never fails.
-  ##
-  ## This is required in both applicative and monadic parsers.
-  return proc(state: ParseState): ParseResult[void] =
-    ParseResult[void].ok
-
-func pure*[T](x: T): Parser[T] {.inline.} =
-  ## Create a `Parser` that always return `x`, but consumes nothing. As such,
-  ## it never fails.
-  ##
-  ## This is required in both applicative and monadic parsers.
-  return proc(state: ParseState): ParseResult[T] =
-    ParseResult[T].ok x
-
 func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## Build a `Parser` that applies another `Parser` *zero* or more times and
   ## returns a sequence of the parsed values.
@@ -72,6 +79,6 @@ func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
       values.add value.get
     ParseResult[seq[T]].ok values
 
-func `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
+template `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] =
   parser0.flatMap do (_: S) -> Parser[T]:
     parser1

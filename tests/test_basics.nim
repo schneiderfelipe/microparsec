@@ -60,26 +60,23 @@ suite "basic character parsers":
     check p.debugParse("ello") == $(newSeq[char](), 0, 0, 0)
     check p.debugParse("") == $(newSeq[char](), 0, 0, 0)
 
-  test "many1":
-    let p = many1(ch('h'))
-    # Both `seq[char]` and `string` work! Very useful! But structural matching
-    # does not work (such as comparing tuples and one of the fields are
-    # seq[char]/string! We need to specialize some functions to return string
-    # instead of seq[char], and get rid of all "newSeq[char]" everywhere.
-    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
-    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
-    check p.debugParse("hhello") == $(@['h', 'h'], 2, 0, 2)
-    check p.debugParse("hhhello") == $(@['h', 'h', 'h'], 3, 0, 3)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
-
   test "pure":
     let p = pure 'x'
     check p.debugParse("hello") == $('x', 0, 0, 0)
     check p.debugParse("ello") == $('x', 0, 0, 0)
     check p.debugParse("") == $('x', 0, 0, 0)
+
+  test "liftA2":
+    let p = liftA2((x: int, c: char) => (x, c), letter.map(c => ord(c) - ord(
+        'a')), letter)
+    check p.debugParse("hello") == $((7, 'e'), 2, 0, 2)
+    check p.debugParse("ello") == $((4, 'l'), 2, 0, 2)
+    check p.debugParse("1ello") == $((unexpected: "\'1\'", expected: @[
+        "letter"]), 0, 0, 0)
+    check p.debugParse("h2llo") == $((unexpected: "\'2\'", expected: @[
+        "letter"]), 1, 0, 1)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "letter"]), 0, 0, 0)
 
   # Can't compare `ok`s due to a bug, see <https://github.com/arnetheduck/nim-result/issues/16>.
   # BUG: does not work in Nim 1.2.6.

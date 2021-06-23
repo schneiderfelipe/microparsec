@@ -45,6 +45,21 @@ suite "basic combinators":
     check p.debugParse("b") == $('c', 0, 0, 0)
     check p.debugParse("") == $('c', 0, 0, 0)
 
+  test "many1":
+    let p = many1(ch('h'))
+    # Both `seq[char]` and `string` work! Very useful! But structural matching
+    # does not work (such as comparing tuples and one of the fields are
+    # seq[char]/string! We need to specialize some functions to return string
+    # instead of seq[char], and get rid of all "newSeq[char]" everywhere.
+    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
+    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
+    check p.debugParse("hhello") == $(@['h', 'h'], 2, 0, 2)
+    check p.debugParse("hhhello") == $(@['h', 'h', 'h'], 3, 0, 3)
+    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
+        0, 0, 0)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "\'h\'"]), 0, 0, 0)
+
   test "count":
     let p = count(1, ch('a'))
     check p.debugParse("aa") == $(@['a'], 1, 0, 1)

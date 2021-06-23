@@ -1,4 +1,5 @@
 import strutils
+import sugar
 
 import results
 
@@ -38,12 +39,12 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
       fail[T](res.error.unexpected, [expected], state, res.error.message)
 
 func choice*[T](parsers: openArray[Parser[T]]): Parser[T] {.inline.} =
-  ## A `Parser` that tries to apply the actions in a list in order, until one
-  ## of them succeeds. Returns the value of the succeeding action.
+  ## A `Parser` that tries to apply the actions in a sequence in order, until
+  ## one of them succeeds. Returns the value of the succeeding action.
   ##
   ## **Note**: This might use `varargs` in the future, but this proves to be
   ## more convenient. Furthermore, the current behavior is undefined for an
-  ## empty list of parsers. In the future, this will be based in an
+  ## empty sequence of parsers. In the future, this will be based in an
   ## Alternative `empty`.
 
   # The following solves "Error: 'parsers' is of type
@@ -81,6 +82,11 @@ template option*[T](x: T, parser: Parser[T]): Parser[T] =
   ## action.
   parser <|> pure x
 
+template many1*[T](parser: Parser[T]): Parser[seq[T]] =
+  ## Build a `Parser` that applies another `Parser` *one* or more times.
+  ## Returns a sequence of the parsed values.
+  liftA2((x: T, xs: seq[T]) => x & xs, parser, many(parser))
+
 func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
   ## result.
@@ -116,13 +122,6 @@ template between*[R, S, T](open: Parser[R], parser: Parser[T], close: Parser[
   ## `close`, returning the value given by `parser`.
   (open >> parser).flatMap do (x: T) -> Parser[T]:
     close >> pure x
-
-template many1*[T](parser: Parser[T]): Parser[seq[T]] =
-  ## Build a `Parser` that applies another `Parser` *one* or more times and
-  ## returns a sequence of the parsed values.
-  parser.flatMap do (x: T) -> Parser[seq[T]]:
-    many(parser).flatMap do (xs: seq[T]) -> Parser[seq[T]]:
-      pure x & xs
 
 template sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
   ## Create a `Parser` that parses a sequence of *one* or more occurrences of
