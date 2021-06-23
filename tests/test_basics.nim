@@ -15,20 +15,26 @@ import microparsec
 suite "basic character parsers":
   test "digit":
     check digit.debugParse("1hello") == $('1', 1, 0, 1)
-    check digit.debugParse("ello") == $((unexpected: "\'e\'", expected: @["digit"]), 0, 0, 0)
-    check digit.debugParse("") == $((unexpected: "end of input", expected: @["digit"]), 0, 0, 0)
+    check digit.debugParse("ello") == $((unexpected: "\'e\'", expected: @[
+        "digit"]), 0, 0, 0)
+    check digit.debugParse("") == $((unexpected: "end of input", expected: @[
+        "digit"]), 0, 0, 0)
 
   test "letter":
     check letter.debugParse("ello") == $('e', 1, 0, 1)
-    check letter.debugParse("1hello") == $((unexpected: "\'1\'", expected: @["letter"]), 0, 0, 0)
-    check letter.debugParse("") == $((unexpected: "end of input", expected: @["letter"]), 0, 0, 0)
+    check letter.debugParse("1hello") == $((unexpected: "\'1\'", expected: @[
+        "letter"]), 0, 0, 0)
+    check letter.debugParse("") == $((unexpected: "end of input", expected: @[
+        "letter"]), 0, 0, 0)
 
   test "space":
     check space.debugParse(" ") == $(' ', 1, 0, 1)
     check space.debugParse("\t") == $('\t', 1, 0, 1)
     check space.debugParse("\n") == $('\n', 1, 0, 1)
-    check space.debugParse("hello") == $((unexpected: "\'h\'", expected: @["space"]), 0, 0, 0)
-    check space.debugParse("") == $((unexpected: "end of input", expected: @["space"]), 0, 0, 0)
+    check space.debugParse("hello") == $((unexpected: "\'h\'", expected: @[
+        "space"]), 0, 0, 0)
+    check space.debugParse("") == $((unexpected: "end of input", expected: @[
+        "space"]), 0, 0, 0)
 
   test "str":
     let p = str("hello")

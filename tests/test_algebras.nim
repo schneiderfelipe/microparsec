@@ -13,11 +13,13 @@ suite "basic manipulation":
     check anyChar.parse("hello") == ParseResult[char].ok 'h'
     check anyChar.parse(newStringStream("hello")) == anyChar.parse("hello")
 
-    check ch('i').debugParse("hello") == $((unexpected: "\'h\'", expected: @["\'i\'"]), 0, 0, 0)
+    check ch('i').debugParse("hello") == $((unexpected: "\'h\'", expected: @[
+        "\'i\'"]), 0, 0, 0)
     check ch('i').debugParse(newStringStream("hello")) == ch('i').debugParse("hello")
 
     let s = newParseState("hello")
-    check ch('i').parse(s) == ParseResult[char].err (unexpected: "\'h\'", expected: @["\'i\'"], state: s, message: "satisfy")
+    check ch('i').parse(s) == ParseResult[char].err (unexpected: "\'h\'",
+        expected: @["\'i\'"], state: s, message: "satisfy")
     check $ch('i').parse(s) == $ch('i').parse("hello")
     check $ch('i').parse(newStringStream("hello")) == $ch('i').parse("hello")
 

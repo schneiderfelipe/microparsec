@@ -36,7 +36,8 @@ func skip*(p: char -> bool, expected: seq[string] = @[]): Parser[void] {.inline.
     else:
       fail[void]("end of input", expected, state, message = "satisfy")
 
-func satisfyWith*[T](f: char -> T, p: T -> bool, expected: seq[string] = @[]): Parser[T] {.inline.} =
+func satisfyWith*[T](f: char -> T, p: T -> bool, expected: seq[string] = @[]): Parser[
+    T] {.inline.} =
   ## Create a `Parser` that transforms a character, and succeeds if a
   ## predicate returns `true` on the transformed value. The parser returns the
   ## transformed character that was parsed.

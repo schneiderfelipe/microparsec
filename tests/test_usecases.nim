@@ -14,13 +14,14 @@ suite "common use cases":
     # instead of seq[char], and get rid of all "newSeq[char]" everywhere.
     check identifier.debugParse("hello") == $(@['h', 'e', 'l', 'l', 'o'], 5, 0, 5)
     check identifier.debugParse("hello") == $(@['h', 'e', 'l', 'l', 'o'], 5, 0, 5)
-    check identifier.debugParse("hello world") == $(@['h', 'e', 'l', 'l', 'o'], 5, 0, 5)
-    check identifier.debugParse("123hello_ world") == $(@['1', '2', '3', 'h', 'e', 'l',
-        'l', 'o', '_'], 9, 0, 9)
+    check identifier.debugParse("hello world") == $(@['h', 'e', 'l', 'l', 'o'],
+        5, 0, 5)
+    check identifier.debugParse("123hello_ world") == $(@['1', '2', '3', 'h',
+        'e', 'l', 'l', 'o', '_'], 9, 0, 9)
     check identifier.debugParse("*123hello_ world") == $((unexpected: "\'*\'",
         expected: @["letter", "digit", "\'_\'"]), 0, 0, 0)
-    check identifier.debugParse("") == $((unexpected: "end of input", expected: @[
-        "letter", "digit", "\'_\'"]), 0, 0, 0)
+    check identifier.debugParse("") == $((unexpected: "end of input",
+        expected: @["letter", "digit", "\'_\'"]), 0, 0, 0)
 
     check $identifier.parse("*123hello_ world") == """Failed reading: satisfy
 
