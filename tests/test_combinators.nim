@@ -109,6 +109,15 @@ suite "basic combinators":
     check simpleComment.debugParse("") == $((unexpected: "end of input",
         expected: @["any character"]), 0, 0, 0)
 
+  test "skipMany":
+    let p = skipMany(ch('h'))
+    check p.debugParse("hello") == $(1, 0, 1)
+    check p.debugParse("hello") == $(1, 0, 1)
+    check p.debugParse("hhello") == $(2, 0, 2)
+    check p.debugParse("hhhello") == $(3, 0, 3)
+    check p.debugParse("ello") == $(0, 0, 0)
+    check p.debugParse("") == $(0, 0, 0)
+
   test "count":
     let p = count(1, ch 'a')
     check p.debugParse("aa") == $(@['a'], 1, 0, 1)

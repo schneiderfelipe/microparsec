@@ -149,6 +149,14 @@ func manyTill*[S, T](parser: Parser[T], endparser: Parser[S]): Parser[seq[T]] {.
         )
     ParseResult[seq[T]].ok values
 
+func skipMany*[T](parser: Parser[T]): Parser[void] {.inline.} =
+  ## Build a `Parser` that skips *zero* or more instances of an action.
+  return func(state: ParseState): ParseResult[void] =
+    var value: ParseResult[T]
+    while (value = parser state; value.isOk):
+      discard
+    ParseResult[void].ok
+
 func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
   ## result.
