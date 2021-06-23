@@ -4,6 +4,19 @@ import results
 
 import types
 
+func identity*[T](x: T): T =
+  ## Identity function.
+  x
+
+func compose*[R, S, T](f: R -> S, g: S -> T): R -> T {.inline.} =
+  ## Compose two functions.
+  (x: R) => g f x
+
+func constant*[S, T](x: T): (S -> T) {.inline.} =
+  ## Constant function.
+  return func(_: S): T =
+    x
+
 template quoted*(x: auto): string =
   ## Quote object `x` and return as string.
   var q: string
@@ -15,7 +28,7 @@ func pure*: Parser[void] {.inline.} =
   ## it never fails.
   ##
   ## This is required in both applicative and monadic parsers.
-  return proc(state: ParseState): ParseResult[void] =
+  return func(state: ParseState): ParseResult[void] =
     ParseResult[void].ok
 
 func pure*[T](x: T): Parser[T] {.inline.} =
@@ -23,7 +36,7 @@ func pure*[T](x: T): Parser[T] {.inline.} =
   ## it never fails.
   ##
   ## This is required in both applicative and monadic parsers.
-  return proc(state: ParseState): ParseResult[T] =
+  return func(state: ParseState): ParseResult[T] =
     ParseResult[T].ok x
 
 func liftA2*[R, S, T](f: (R, S) -> T, parser0: Parser[R], parser1: Parser[
@@ -39,20 +52,20 @@ func flatMap*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} 
   ## This is the equivalent to `bind` or `>>=` in Haskell, and is required in
   ## monadic parsing.
   return proc(state: ParseState): ParseResult[T] =
-    let res = parser(state)
+    let res = parser state
     if res.isOk:
-      f(res.get)(state)
+      f(res.get)state
     else:
-      fail[T](res)
+      fail[T]res
 
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
-  return proc(state: ParseState): ParseResult[T] =
-    let res0 = parser0(state)
+  return func(state: ParseState): ParseResult[T] =
+    let res0 = parser0 state
     if res0.isOk:
       res0
     else:
-      let res1 = parser1(state)
+      let res1 = parser1 state
       if res1.isOk:
         res1
       else:
@@ -75,10 +88,9 @@ func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
     var
       value: ParseResult[T]
       values: seq[T]
-    while (value = parser(state); value.isOk):
+    while (value = parser state; value.isOk):
       values.add value.get
     ParseResult[seq[T]].ok values
 
 template `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] =
-  parser0.flatMap do (_: S) -> Parser[T]:
-    parser1
+  parser0.flatMap constant[S, Parser[T]]parser1

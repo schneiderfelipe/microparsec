@@ -85,7 +85,7 @@ func notInClass*(s: auto): (char -> bool) =
     c notin s
 
 let anyChar*: Parser[char] =
-  satisfy((_: char) => true, ["any character"])
+  satisfy(constant[char, bool]true, ["any character"])
   ## A `Parser` that matches any character.
 
 func ch*(c: char): Parser[char] {.inline.} =
@@ -110,9 +110,9 @@ proc peekCh*(state: ParseState): ParseResult[Option[char]] =
   ## combinators such as `many`, because such parsers loop until a failure
   ## occurs. Careless use will thus result in an infinite loop.
   if not state.atEnd:
-    ParseResult[Option[char]].ok some(state.peekChar)
+    ParseResult[Option[char]].ok some state.peekChar
   else:
-    ParseResult[Option[char]].ok none(char)
+    ParseResult[Option[char]].ok none char
 
 proc peekChF*(state: ParseState): ParseResult[char] =
   ## A `Parser` that matches any character, to perform lookahead. Does not

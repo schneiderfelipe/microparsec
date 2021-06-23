@@ -32,7 +32,7 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   ## such as `satisfy` won't need a `expected` parameter for performance
   ## reasons.
   return func(state: ParseState): ParseResult[T] =
-    let res = parser(state)
+    let res = parser state
     if res.isOk:
       res
     else:
@@ -57,7 +57,7 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] {.inline.} =
     # We could use OrderedSet[string] in the future
     var expecteds, messages: seq[string]
     for parser in parsers:
-      result = parser(state)
+      result = parser state
       if result.isOk:
         return
       else:
@@ -73,7 +73,7 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] {.inline.} =
       result.error.unexpected,
       expecteds,
       state,
-      join(messages),
+      join messages,
     )
 
 template option*[T](x: T, parser: Parser[T]): Parser[T] =
@@ -85,7 +85,7 @@ template option*[T](x: T, parser: Parser[T]): Parser[T] =
 template many1*[T](parser: Parser[T]): Parser[seq[T]] =
   ## Build a `Parser` that applies another `Parser` *one* or more times.
   ## Returns a sequence of the parsed values.
-  liftA2((x: T, xs: seq[T]) => x & xs, parser, many(parser))
+  liftA2((x: T, xs: seq[T]) => x & xs, parser, many parser)
 
 func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
@@ -97,7 +97,7 @@ func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
       value: ParseResult[T]
       values: seq[T]
     for _ in 0..<n:
-      value = parser(state)
+      value = parser state
       if value.isOk:
         values.add value.get
       else:
@@ -154,9 +154,9 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   return func(state: ParseState): ParseResult[void] =
     let
       position = state.getPosition
-      res = parser(state)
+      res = parser state
     if res.isErr:
       ParseResult[void].ok
     else:
       fail[void](quoted res.get, [], state, message = "notFollowedBy")
-    state.setPosition(position)
+    state.setPosition position

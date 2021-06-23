@@ -48,9 +48,9 @@ func fail*[T](res: ParseResult[auto]): ParseResult[T] {.inline.} =
 proc getCurrentLine(state: ParseState): string {.inline.} =
   ## Get the current line as a `string`.
   let position = state.stream.getPosition
-  state.stream.setPosition(state.position.currentLine)
-  discard state.stream.readLine(result)
-  state.stream.setPosition(position)
+  state.stream.setPosition state.position.currentLine
+  discard state.stream.readLine result
+  state.stream.setPosition position
 
 
 proc `$`*[T](res: ParseResult[T]): string {.inline.} =
@@ -81,7 +81,7 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
 
       positionInfo = lineStr & ':' & $column & ":(" &
           $state.stream.getPosition & "):"
-      offendingLine = getCurrentLine(state)
+      offendingLine = getCurrentLine state
       markingCaret = indent("^", column)
       unexpectedInfo = "unexpected " & error.unexpected
       expectingInfo = if len(expectedItems) > 0:
@@ -158,12 +158,12 @@ func newParseState*(s: Stream): ParseState {.inline.} =
 
 template newParseState*(s: string): ParseState =
   ## Creates a new `ParseState` from the string `s`.
-  newParseState newStringStream(s)
+  newParseState newStringStream s
 
 
 template parse*[T](parser: Parser[T], x: auto): ParseResult[T] =
   ## Apply a `Parser` to `x`.
-  parser newParseState(x)
+  parser newParseState x
 
 template parse*[T](parser: Parser[T], x: ParseState): ParseResult[T] =
   ## Apply a `Parser` to `x`.
@@ -172,8 +172,8 @@ template parse*[T](parser: Parser[T], x: ParseState): ParseResult[T] =
 
 proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
   let
-    state = newParseState(x)
-    res = parser(state)
+    state = newParseState x
+    res = parser state
   if res.isOk:
     $(res.get, state.stream.getPosition, state.position.line,
         state.position.column)
@@ -183,8 +183,8 @@ proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
 
 proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
   let
-    state = newParseState(x)
-    res = parser(state)
+    state = newParseState x
+    res = parser state
   if res.isOk:
     $(state.stream.getPosition, state.position.line, state.position.column)
   else:
