@@ -36,3 +36,19 @@ suite "basic combinators":
       pb3 = ch('h') <|> ch('e') <|> ch('l')
     for s in cases:
       check pc3.debugParse(s) == pb3.debugParse(s)
+
+  test "count":
+    let p = count(1, ch('a'))
+    check p.debugParse("aa") == $(@['a'], 1, 0, 1)
+    check p.debugParse("a") == $(@['a'], 1, 0, 1)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "\'a\'"]), 0, 0, 0)
+
+    let q = count(2, ch('a'))
+    check q.debugParse("aa") == $(@['a', 'a'], 2, 0, 2)
+    check q.debugParse("ab") == $((unexpected: "\'b\'", expected: @["\'a\'"]),
+        1, 0, 1)
+    check q.debugParse("a") == $((unexpected: "end of input", expected: @[
+        "\'a\'"]), 1, 0, 1)
+    check q.debugParse("") == $((unexpected: "end of input", expected: @[
+        "\'a\'"]), 0, 0, 0)

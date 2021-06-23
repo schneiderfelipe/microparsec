@@ -53,6 +53,7 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
   let parsers = @parsers
 
   return proc(state: ParseState): ParseResult[T] =
+    # We could use OrderedSet[string] in the future
     var expecteds, messages: seq[string]
     for parser in parsers:
       result = parser(state)
@@ -73,6 +74,29 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
       state,
       join(messages),
     )
+
+func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] =
+  ## A `Parser` that applies the given action repeatedly, returning every
+  ## result.
+  ##
+  ## **Note**: this short circuits in case of errors.
+  return func(state: ParseState): ParseResult[seq[T]] =
+    var
+      value: ParseResult[T]
+      values: seq[T]
+    for _ in 0..<n:
+      value = parser(state)
+      if value.isOk:
+        values.add value.get
+      else:
+        # Short circuit
+        return fail[seq[T]](
+          value.error.unexpected,
+          value.error.expected,
+          state,
+          value.error.message,
+        )
+    return ParseResult[seq[T]].ok values
 
 func optional*[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## Create a `Parser` that tries to apply `parser`. It might consume input if

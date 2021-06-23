@@ -66,13 +66,11 @@ func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## returns a sequence of the parsed values.
   return func(state: ParseState): ParseResult[seq[T]] =
     var
-      elems: seq[T]
-      res = parser(state)
-    if res.isOk:
-      elems.add(res.get)
-      while (res = parser(state); res.isOk):
-        elems.add(res.get)
-    ParseResult[seq[T]].ok elems
+      value: ParseResult[T]
+      values: seq[T]
+    while (value = parser(state); value.isOk):
+      values.add value.get
+    ParseResult[seq[T]].ok values
 
 func `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   parser0.flatMap do (_: S) -> Parser[T]:
