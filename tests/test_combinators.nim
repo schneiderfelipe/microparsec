@@ -77,6 +77,21 @@ suite "basic combinators":
       sepBy(p, sep) >> optional(sep >> q)
     check foo(str "a", str " ", str "b").debugParse("a a b") == $(4, 0, 4)
 
+  test "sepBy1":
+    let
+      inner = many1 digit
+      p = sepBy1(inner, ch ',')
+      q = sepBy(inner, ch ',')
+    check p.debugParse("1,2,3,4") == q.debugParse("1,2,3,4")
+    check p.debugParse("11,22") == q.debugParse("11,22")
+
+    check p.debugParse("11 ,22") == q.debugParse("11 ,22")
+    check p.debugParse("11, 22") == q.debugParse("11, 22")
+    check p.debugParse("11,,22") == q.debugParse("11,,22")
+    check p.debugParse(",") == $((unexpected: "\',\'", expected: @["digit"]), 0, 0, 0)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "digit"]), 0, 0, 0)
+
   test "manyTill":
     let p = manyTill(many(space) *> digit, ch '.')
     check p.debugParse("1 2  3\n4.") == $(@['1', '2', '3', '4'], 9, 1, 2)

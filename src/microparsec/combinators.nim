@@ -89,7 +89,7 @@ template many1*[T](parser: Parser[T]): Parser[seq[T]] =
 
 template sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
   ## A `Parser` that applies *zero* or more occurrences of `parser`, separated
-  ## by `separator`. Returns a list of the values returned by `parser`.
+  ## by `separator`. Returns a sequence of the values returned by `parser`.
   ##
   ## **Note**: Attoparsec's implementation seems to be too complicated,
   ## (unnecessarily?) testing for a first occurrence. Maybe there's a
@@ -98,9 +98,35 @@ template sepBy*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
   ## issue you might find!
   option(newSeq[T](), sepBy1(parser, separator))
 
+func sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.inline.} =
+  ## Create a `Parser` that applies *one* or more occurrences of
+  ## `parser`, separated by `separator`. Returns a sequence of the values
+  ## returned by `parser`.
+  ##
+  ## **Note**: Currently, `sepBy` is defined in function of this function.
+  ## This might change in the future, if the implementation can be made
+  ## simpler some other way.
+  return func(state: ParseState): ParseResult[seq[T]] =
+    var
+      value: ParseResult[T] = parser state
+      values: seq[T]
+    if value.isOk:
+      values.add value.get
+      let separatorParser = separator *> parser
+      while (value = separatorParser state; value.isOk):
+        values.add value.get
+      result = ParseResult[seq[T]].ok values
+    else:
+      result = fail[seq[T]](
+        value.error.unexpected,
+        value.error.expected,
+        state,
+        value.error.message,
+      )
+
 func manyTill*[S, T](parser: Parser[T], endparser: Parser[S]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies an action *zero* or more times until another
-  ## action succeeds, and returns the list of values returned by the first
+  ## action succeeds, and returns the sequence of values returned by the first
   ## action.
   ##
   ## **Note**: Error messages are not good enough yet, but the current
@@ -144,7 +170,7 @@ func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
           state,
           value.error.message,
         )
-    return ParseResult[seq[T]].ok values
+    ParseResult[seq[T]].ok values
 
 template optional*[T](parser: Parser[T]): Parser[void] =
   ## Create a `Parser` that tries to apply `parser`. It might consume input if
@@ -158,13 +184,6 @@ template between*[R, S, T](open: Parser[R], parser: Parser[T], close: Parser[
   ## `close`, returning the value given by `parser`.
   (open >> parser).flatMap do (x: T) -> Parser[T]:
     close >> pure x
-
-template sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] =
-  ## Create a `Parser` that parses a sequence of *one* or more occurrences of
-  ## `parser`, separated by `separator`.
-  parser.flatMap do (x: T) -> Parser[seq[T]]:
-    many(separator >> parser).flatMap do (xs: seq[T]) -> Parser[seq[T]]:
-      pure x & xs
 
 template anyToken(state: ParseState): ParseResult[char] =
   ## A `Parser` that accepts any kind of token and returns the accepted token.

@@ -130,20 +130,6 @@ suite "basic character parsers":
     check q.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'{\'"]), 0, 0, 0)
 
-  test "sepBy1":
-    let p = sepBy1(many1(digit), ch(','))
-    check p.debugParse("1,2,3,4") == $(@[@['1'], @['2'], @['3'], @['4']], 7, 0, 7)
-    check p.debugParse("11,22") == $(@[@['1', '1'], @['2', '2']], 5, 0, 5)
-    # Observe how forgiving is that. Also observe how greedy that is.
-    check p.debugParse("11 ,22") == $(@[@['1', '1']], 2, 0, 2)
-    check p.debugParse("11, 22") == $(@[@['1', '1']], 3, 0, 3)
-    check p.debugParse("11,,22") == $(@[@['1', '1']], 3, 0, 3)
-    check p.debugParse(",") == $((unexpected: "\',\'", expected: @["digit"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "digit"]), 0, 0, 0)
-    # check p.debugParse("1,2,3,4") == $(@["\'1\'", "\'2\'", "\'3\'", "\'4\'"], 7, 0, 7)
-    # check p.debugParse("") == $((unexpected: "end of input", expected: @["\'{\'"]), 0, 0, 0)
-
   test "optional":
     let p = optional(ch('h'))
     check p.debugParse("ello") == $(0, 0, 0)
