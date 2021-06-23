@@ -1,3 +1,5 @@
+import strutils
+
 import results
 
 import primitives
@@ -34,6 +36,43 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
       res
     else:
       fail[T](res.error.unexpected, @[expected], state, res.error.message)
+
+func choice*[T](parsers: openArray[Parser[T]]): Parser[T] =
+  ## A `Parser` that tries to apply the actions in a list in order, until one
+  ## of them succeeds. Returns the value of the succeeding action.
+  ##
+  ## **Note**: This might use `varargs` in the future, but this proves to be
+  ## more convenient. Furthermore, the current behavior is undefined for an
+  ## empty list of parsers. In the future, this will be based in an
+  ## Alternative `empty`.
+
+  # The following solves "Error: 'parsers' is of type
+  # <varargs[Parser[system.char]]> which cannot be captured as it would
+  # violate memory safety...". See discussion in
+  # <https://github.com/nim-lang/Nim/issues/17187>.
+  let parsers = @parsers
+
+  return proc(state: ParseState): ParseResult[T] =
+    var expecteds, messages: seq[string]
+    for parser in parsers:
+      result = parser(state)
+      if result.isOk:
+        return
+      else:
+        # Update reported data, so that it matches the state
+        if result.error.message notin messages:
+          messages.add result.error.message
+        for expected in result.error.expected:
+          if expected notin expecteds:
+            expecteds.add expected
+        continue
+
+    result = fail[T](
+      result.error.unexpected,
+      expecteds,
+      state,
+      join(messages),
+    )
 
 func optional*[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## Create a `Parser` that tries to apply `parser`. It might consume input if
