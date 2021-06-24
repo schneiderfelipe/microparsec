@@ -2,7 +2,7 @@
 
 version       = "0.1.0"
 author        = "Felipe S. S. Schneider"
-description   = "A Parsec-like parsing library in metric units."
+description   = "A performant Nim parsing library built for humans."
 license       = "MIT"
 srcDir        = "src"
 
