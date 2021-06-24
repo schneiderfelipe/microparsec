@@ -83,6 +83,8 @@ func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
 func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## Build a `Parser` that applies another `Parser` *zero* or more times and
   ## returns a sequence of the parsed values.
+  ##
+  ## **Note**: This function is experimental.
   return func(state: ParseState): ParseResult[seq[T]] =
     var
       value: ParseResult[T]

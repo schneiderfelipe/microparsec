@@ -88,8 +88,9 @@ let anyChar*: Parser[char] =
 func ch*(c: char): Parser[char] {.inline.} =
   ## Create a `Parser` that matches a specific character.
   ##
-  ## This function is called `char` in Parsec, but this conflicts with the
-  ## type `char` in Nim.
+  ## **Note**: This function is called `char` in Parsec, but this conflicts
+  ## with the type `char` in Nim. As such, its name might change any time
+  ## soon if I find a better one.
   satisfy((d: char) => d == c, [quoted c])
 
 func notChar*(c: char): Parser[char] {.inline.} =

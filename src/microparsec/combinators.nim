@@ -191,6 +191,8 @@ template between*[R, S, T](open: Parser[R], parser: Parser[T], close: Parser[
     S]): Parser[T] =
   ## Create a `Parser` that parses `open`, followed by `parser` and then
   ## `close`, returning the value given by `parser`.
+  ##
+  ## **Note**: This function is experimental.
   (open >> parser).flatMap do (x: T) -> Parser[T]:
     close >> pure x
 

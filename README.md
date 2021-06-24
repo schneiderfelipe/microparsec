@@ -34,10 +34,10 @@ and
 
 ## References
 
-- Leijen, Daan & Meijer, Erik. (2001). **Parsec: Direct Style Monadic Parser Combinators For The Real World**
-  ([link](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf)).
-- Holden, Daniel. (2014). **You could have invented Parser Combinators**
-  ([link](http://theorangeduck.com/page/you-could-have-invented-parser-combinators)).
+- Leijen, Daan & Meijer, Erik. (2001).
+  [**Parsec: Direct Style Monadic Parser Combinators For The Real World**](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf).
+- Holden, Daniel. (2014).
+  [**You could have invented Parser Combinators**](http://theorangeduck.com/page/you-could-have-invented-parser-combinators).
 
 ## Similar projects
 
