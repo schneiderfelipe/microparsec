@@ -6,110 +6,108 @@ suite "single character parsers":
   test "satisfy":
     let p = (satisfy do (c: char) -> auto:
       c in {'+', '-', '*', '/'}) <?> "operation"
-    check p.debugParse("+") == $('+', 1, 0, 1)
-    check p.debugParse("1") == $((unexpected: "\'1\'", expected: @[
-        "operation"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "operation"]), 0, 0, 0)
+    check p.debugParse("+") == $('+', "")
+    check p.debugParse("1") == $(unexpected: "\'1\'", expected: @[
+        "operation"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "operation"])
 
   test "skip":
     let p = (skip do (c: char) -> auto:
       c in {'+', '-', '*', '/'}) <?> "skippable operation"
-    check p.debugParse("+") == $(1, 0, 1)
-    check p.debugParse("1") == $((unexpected: "\'1\'", expected: @[
-        "skippable operation"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "skippable operation"]), 0, 0, 0)
+    check p.debugParse("+") == "(\"\")"
+    check p.debugParse("1") == $(unexpected: "\'1\'", expected: @[
+        "skippable operation"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "skippable operation"])
 
   test "satisfyWith":
     let p = (satisfyWith(c => ord(c)) do (x: auto) -> auto:
       x < 97) <?> "ord(x) < 97"
-    check p.debugParse("+") == $(ord('+'), 1, 0, 1)
-    check p.debugParse("b") == $((unexpected: $ord('b'), expected: @[
-        "ord(x) < 97"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "ord(x) < 97"]), 0, 0, 0)
+    check p.debugParse("+") == $(ord('+'), "")
+    check p.debugParse("b") == $(unexpected: $ord('b'), expected: @[
+        "ord(x) < 97"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "ord(x) < 97"])
 
   test "inClass":
     let
       vowel = inClass "aeiou"
       p = (satisfy vowel) <?> "vowel"
-    check p.debugParse("foo") == $((unexpected: "\'f\'", expected: @["vowel"]),
-        0, 0, 0)
-    check p.debugParse("oo") == $('o', 1, 0, 1)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "vowel"]), 0, 0, 0)
+    check p.debugParse("foo") == $(unexpected: "\'f\'", expected: @["vowel"])
+    check p.debugParse("oo") == $('o', "o")
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "vowel"])
 
     let
       halfAlphabet = inClass {'a'..'n', 'A'..'N'}
       q = (satisfy halfAlphabet) <?> "in half alphabet"
-    check q.debugParse("foo") == $('f', 1, 0, 1)
-    check q.debugParse("oo") == $((unexpected: "\'o\'", expected: @[
-        "in half alphabet"]), 0, 0, 0)
+    check q.debugParse("foo") == $('f', "oo")
+    check q.debugParse("oo") == $(unexpected: "\'o\'", expected: @[
+        "in half alphabet"])
 
   test "notInClass":
     let
       noVowel = notInClass "aeiou"
       p = (satisfy noVowel) <?> "no vowel"
-    check p.debugParse("foo") == $('f', 1, 0, 1)
-    check p.debugParse("oo") == $((unexpected: "\'o\'", expected: @[
-        "no vowel"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "no vowel"]), 0, 0, 0)
+    check p.debugParse("foo") == $('f', "oo")
+    check p.debugParse("oo") == $(unexpected: "\'o\'", expected: @[
+        "no vowel"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "no vowel"])
 
     let
       notHalfAlphabet = notInClass {'a'..'n', 'A'..'N'}
       q = (satisfy notHalfAlphabet) <?> "not in half alphabet"
-    check q.debugParse("foo") == $((unexpected: "\'f\'", expected: @[
-        "not in half alphabet"]), 0, 0, 0)
-    check q.debugParse("oo") == $('o', 1, 0, 1)
+    check q.debugParse("foo") == $(unexpected: "\'f\'", expected: @[
+        "not in half alphabet"])
+    check q.debugParse("oo") == $('o', "o")
 
   test "anyChar":
     let p = anyChar
-    check p.debugParse("foo") == $('f', 1, 0, 1)
-    check p.debugParse("oo") == $('o', 1, 0, 1)
-    check p.debugParse("f") == $('f', 1, 0, 1)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
+    check p.debugParse("foo") == $('f', "oo")
+    check p.debugParse("oo") == $('o', "o")
+    check p.debugParse("f") == $('f', "")
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "any character"])
 
   test "ch":
     let p = ch('h')
-    check p.debugParse("hello") == $('h', 1, 0, 1)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $('h', "ello")
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @["\'h\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'"])
 
   test "notChar":
     let p = notChar('e')
-    check p.debugParse("hello") == $('h', 1, 0, 1)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @[
-        "not \'e\'"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "not \'e\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $('h', "ello")
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @[
+        "not \'e\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "not \'e\'"])
 
   test "peekCh":
     let p = peekCh
-    check p.debugParse("foo") == $(some('f'), 0, 0, 0)
-    check p.debugParse("oo") == $(some('o'), 0, 0, 0)
-    check p.debugParse("f") == $(some('f'), 0, 0, 0)
-    check p.debugParse("") == $(none(char), 0, 0, 0)
+    check p.debugParse("foo") == $(some('f'), "foo")
+    check p.debugParse("oo") == $(some('o'), "oo")
+    check p.debugParse("f") == $(some('f'), "f")
+    check p.debugParse("") == $(none(char), "")
 
   test "peekChF":
     let p = peekChF
-    check p.debugParse("foo") == $('f', 0, 0, 0)
-    check p.debugParse("oo") == $('o', 0, 0, 0)
-    check p.debugParse("f") == $('f', 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
+    check p.debugParse("foo") == $('f', "foo")
+    check p.debugParse("oo") == $('o', "oo")
+    check p.debugParse("f") == $('f', "f")
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "any character"])
 
   test "match":
     let p = match(str("hello") >> many(space) >> str("world").map(x => true))
-    check p.debugParse("hello world") == $(("hello world", true), 11, 0, 11)
-    check p.debugParse("hello   world") == $(("hello   world", true), 13, 0, 13)
-    check p.debugParse("hello  joe") == $((unexpected: "\'j\'", expected: @[
-        "\"world\""]), 7, 0, 7)
-    check p.debugParse("foo") == $((unexpected: "\'f\'", expected: @[
-        "\"hello\""]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\"hello\""]), 0, 0, 0)
+    check p.debugParse("hello world") == $(("hello world", true), "")
+    check p.debugParse("hello   world") == $(("hello   world", true), "")
+    check p.debugParse("hello  joe") == $(unexpected: "\'j\'", expected: @[
+        "\"world\""])
+    check p.debugParse("foo") == $(unexpected: "\'f\'", expected: @[
+        "\"hello\""])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\"hello\""])

@@ -14,38 +14,28 @@ import microparsec
 
 suite "basic character parsers":
   test "digit":
-    check digit.debugParse("1hello") == $('1', 1, 0, 1)
-    check digit.debugParse("ello") == $((unexpected: "\'e\'", expected: @[
-        "digit"]), 0, 0, 0)
-    check digit.debugParse("") == $((unexpected: "end of input", expected: @[
-        "digit"]), 0, 0, 0)
+    check digit.debugParse("1hello") == $('1', "hello")
+    check digit.debugParse("ello") == $(unexpected: "\'e\'", expected: @[
+        "digit"])
 
   test "letter":
-    check letter.debugParse("ello") == $('e', 1, 0, 1)
-    check letter.debugParse("1hello") == $((unexpected: "\'1\'", expected: @[
-        "letter"]), 0, 0, 0)
-    check letter.debugParse("") == $((unexpected: "end of input", expected: @[
-        "letter"]), 0, 0, 0)
+    check letter.debugParse("ello") == $('e', "llo")
+    check letter.debugParse("1hello") == $(unexpected: "\'1\'", expected: @[
+        "letter"])
 
   test "space":
-    check space.debugParse(" ") == $(' ', 1, 0, 1)
-    check space.debugParse("\t") == $('\t', 1, 0, 1)
-    check space.debugParse("\n") == $('\n', 1, 0, 1)
-    check space.debugParse("hello") == $((unexpected: "\'h\'", expected: @[
-        "space"]), 0, 0, 0)
-    check space.debugParse("") == $((unexpected: "end of input", expected: @[
-        "space"]), 0, 0, 0)
+    check space.debugParse(" ") == $(' ', "")
+    check space.debugParse("\t") == $('\t', "")
+    check space.debugParse("hello") == $(unexpected: "\'h\'", expected: @[
+        "space"])
 
   test "str":
     let p = str("hello")
-    check p.debugParse("hello") == $("hello", 5, 0, 5)
-    check p.debugParse("hello world") == $("hello", 5, 0, 5)
-    check p.debugParse("1hello") == $((unexpected: "\'1\'", expected: @[
-        "\"hello\""]), 0, 0, 0)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @[
-        "\"hello\""]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\"hello\""]), 0, 0, 0)
+    check p.debugParse("hello world") == $("hello", " world")
+    check p.debugParse("1hello") == $(unexpected: "\'1\'", expected: @[
+        "\"hello\""])
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @[
+        "\"hello\""])
 
   test "many":
     let p = many(ch('h'))
@@ -53,133 +43,115 @@ suite "basic character parsers":
     # does not work (such as comparing tuples and one of the fields are
     # seq[char]/string! We need to specialize some functions to return string
     # instead of seq[char], and get rid of all "newSeq[char]" everywhere.
-    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
-    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
-    check p.debugParse("hhello") == $(@['h', 'h'], 2, 0, 2)
-    check p.debugParse("hhhello") == $(@['h', 'h', 'h'], 3, 0, 3)
-    check p.debugParse("ello") == $(newSeq[char](), 0, 0, 0)
-    check p.debugParse("") == $(newSeq[char](), 0, 0, 0)
+    check p.debugParse("hello") == $(@['h'], "ello")
+    check p.debugParse("hhhello") == $(@['h', 'h', 'h'], "ello")
+    check p.debugParse("ello") == $(newSeq[char](), "ello")
 
   test "pure":
     let p = pure 'x'
-    check p.debugParse("hello") == $('x', 0, 0, 0)
-    check p.debugParse("ello") == $('x', 0, 0, 0)
-    check p.debugParse("") == $('x', 0, 0, 0)
+    check p.debugParse("hello") == $('x', "hello")
+    check p.debugParse("") == $('x', "")
 
   test "liftA2":
     let p = liftA2((x: int, c: char) => (x, c), letter.map(c => ord(c) - ord(
         'a')), letter)
-    check p.debugParse("hello") == $((7, 'e'), 2, 0, 2)
-    check p.debugParse("ello") == $((4, 'l'), 2, 0, 2)
-    check p.debugParse("1ello") == $((unexpected: "\'1\'", expected: @[
-        "letter"]), 0, 0, 0)
-    check p.debugParse("h2llo") == $((unexpected: "\'2\'", expected: @[
-        "letter"]), 1, 0, 1)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "letter"]), 0, 0, 0)
+    check p.debugParse("hello") == $((7, 'e'), "llo")
+    check p.debugParse("ello") == $((4, 'l'), "lo")
+    check p.debugParse("1ello") == $(unexpected: "\'1\'", expected: @[
+        "letter"])
+    check p.debugParse("h2llo") == $(unexpected: "\'2\'", expected: @[
+        "letter"])
 
     let q = liftA2((x: int, c: char) => (x, c), letter.map(c => ord(c) - ord(
         'a')), digit)
-    check q.debugParse("hello") == $((unexpected: "\'e\'", expected: @[
-        "digit"]), 1, 0, 1)
-    check q.debugParse("ello") == $((unexpected: "\'l\'", expected: @["digit"]),
-        1, 0, 1)
-    check q.debugParse("1ello") == $((unexpected: "\'1\'", expected: @[
-        "letter"]), 0, 0, 0)
-    check q.debugParse("h2llo") == $((7, '2'), 2, 0, 2)
-    check q.debugParse("") == $((unexpected: "end of input", expected: @[
-        "letter"]), 0, 0, 0)
+    check q.debugParse("hello") == $(unexpected: "\'e\'", expected: @[
+        "digit"])
+    check q.debugParse("1ello") == $(unexpected: "\'1\'", expected: @[
+        "letter"])
+    check q.debugParse("h2llo") == $((7, '2'), "llo")
 
   # Can't compare `ok`s due to a bug, see <https://github.com/arnetheduck/nim-result/issues/16>.
   # BUG: does not work in Nim 1.2.6.
   # test "eof":
   #   let p = eof
   #   check p.debugParse("") == $(0, 0, 0)
-  #   check p.debugParse("hello") == $((unexpected: "\'h\'", expected: @["end of input"]), 0, 0, 0)
+  #   check p.debugParse("hello") == $(unexpected: "\'h\'", expected: @["end of input"])
 
   test "between":
     let p = between(ch('{'), many(digit), ch('}'))
-    check p.debugParse("{12}hello") == $(@['1', '2'], 4, 0, 4)
-    check p.debugParse("{}hello") == $(newSeq[char](), 2, 0, 2)
-    check p.debugParse("hello") == $((unexpected: "\'h\'", expected: @[
-        "\'{\'"]), 0, 0, 0)
-    check p.debugParse("{hello") == $((unexpected: "\'h\'", expected: @[
-        "\'}\'"]), 1, 0, 1)
-    check p.debugParse("{1hello") == $((unexpected: "\'h\'", expected: @[
-        "\'}\'"]), 2, 0, 2)
-    check p.debugParse("{12hello") == $((unexpected: "\'h\'", expected: @[
-        "\'}\'"]), 3, 0, 3)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'{\'"]), 0, 0, 0)
+    check p.debugParse("{12}hello") == $(@['1', '2'], "hello")
+    check p.debugParse("{}hello") == $(newSeq[char](), "hello")
+    check p.debugParse("hello") == $(unexpected: "\'h\'", expected: @[
+        "\'{\'"])
+    check p.debugParse("{hello") == $(unexpected: "\'h\'", expected: @[
+        "\'}\'"])
+    check p.debugParse("{12hello") == $(unexpected: "\'h\'", expected: @[
+        "\'}\'"])
 
     # Observe that the error message bypasses the possibility of more digits.
     # Think about the error messages as a set of tokens that would be required
     # to make the input valid.
     let q = between(ch('{'), many1(digit), ch('}'))
-    check q.debugParse("{12}hello") == $(@['1', '2'], 4, 0, 4)
-    check q.debugParse("{}hello") == $((unexpected: "\'}\'", expected: @[
-        "digit"]), 1, 0, 1)
-    check q.debugParse("hello") == $((unexpected: "\'h\'", expected: @[
-        "\'{\'"]), 0, 0, 0)
-    check q.debugParse("{hello") == $((unexpected: "\'h\'", expected: @[
-        "digit"]), 1, 0, 1)
-    check q.debugParse("{1hello") == $((unexpected: "\'h\'", expected: @[
-        "\'}\'"]), 2, 0, 2)
-    check q.debugParse("{12hello") == $((unexpected: "\'h\'", expected: @[
-        "\'}\'"]), 3, 0, 3)
-    check q.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'{\'"]), 0, 0, 0)
+    check q.debugParse("{12}hello") == $(@['1', '2'], "hello")
+    check q.debugParse("{}hello") == $(unexpected: "\'}\'", expected: @[
+        "digit"])
+    check q.debugParse("hello") == $(unexpected: "\'h\'", expected: @[
+        "\'{\'"])
+    check q.debugParse("{hello") == $(unexpected: "\'h\'", expected: @[
+        "digit"])
+    check q.debugParse("{12hello") == $(unexpected: "\'h\'", expected: @[
+        "\'}\'"])
 
   test "optional":
     let p = optional(ch('h'))
-    check p.debugParse("ello") == $(0, 0, 0)
-    check p.debugParse("hello") == $(1, 0, 1)
-    check p.debugParse("hhello") == $(1, 0, 1)
-    check p.debugParse("") == $(0, 0, 0)
+    check p.debugParse("ello") == "(\"ello\")"
+    check p.debugParse("hello") == "(\"ello\")"
+    check p.debugParse("hhello") == "(\"hello\")"
+    check p.debugParse("") == "(\"\")"
 
 suite "parsing utilities":
   test "position state":
     let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
-    check p.debugParse("foo") == $((unexpected: "end of input", expected: @[
-        "any character"]), 3, 0, 3)
-    check p.debugParse("fooo") == $((unexpected: "end of input", expected: @[
-        "any character"]), 4, 0, 4)
-    check p.debugParse("foooo") == $('o', 5, 0, 5)
+    check p.debugParse("foo", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
+    check p.debugParse("fooo", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
+    check p.debugParse("foooo", withPosition = true) == $('o', "", 5, 0, 5)
 
-    check p.debugParse("\nfoo") == $((unexpected: "end of input", expected: @[
-        "any character"]), 4, 1, 3)
-    check p.debugParse("f\noo") == $((unexpected: "end of input", expected: @[
-        "any character"]), 4, 1, 2)
-    check p.debugParse("fo\no") == $((unexpected: "end of input", expected: @[
-        "any character"]), 4, 1, 1)
-    check p.debugParse("foo\n") == $((unexpected: "end of input", expected: @[
-        "any character"]), 4, 0, 4)
+    check p.debugParse("\nfoo", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
+    check p.debugParse("f\noo", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
+    check p.debugParse("fo\no", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
+    check p.debugParse("foo\n", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
 
-    check p.debugParse("\n\nfoo") == $('o', 5, 2, 3)
-    check p.debugParse("\nf\noo") == $('o', 5, 2, 2)
-    check p.debugParse("\nfo\no") == $('o', 5, 2, 1)
-    check p.debugParse("\nfoo\n") == $('\n', 5, 1, 4)
+    check p.debugParse("\n\nfoo", withPosition = true) == $('o', "", 5, 2, 3)
+    check p.debugParse("\nf\noo", withPosition = true) == $('o', "", 5, 2, 2)
+    check p.debugParse("\nfo\no", withPosition = true) == $('o', "", 5, 2, 1)
+    check p.debugParse("\nfoo\n", withPosition = true) == $('\n', "", 5, 1, 4)
 
-    check p.debugParse("\nfooo") == $('o', 5, 1, 4)
-    check p.debugParse("f\nooo") == $('o', 5, 1, 3)
-    check p.debugParse("fo\noo") == $('o', 5, 1, 2)
-    check p.debugParse("foo\no") == $('o', 5, 1, 1)
-    check p.debugParse("fooo\n") == $('\n', 5, 0, 5) # Newline belongs to previous line
+    check p.debugParse("\nfooo", withPosition = true) == $('o', "", 5, 1, 4)
+    check p.debugParse("f\nooo", withPosition = true) == $('o', "", 5, 1, 3)
+    check p.debugParse("fo\noo", withPosition = true) == $('o', "", 5, 1, 2)
+    check p.debugParse("foo\no", withPosition = true) == $('o', "", 5, 1, 1)
+    check p.debugParse("fooo\n", withPosition = true) == $('\n', "", 5, 0, 5) # Newline belongs to previous line
 
-    check p.debugParse("\n\nfooo") == $('o', 5, 2, 3)
-    check p.debugParse("\nf\nooo") == $('o', 5, 2, 2)
-    check p.debugParse("\nfo\noo") == $('o', 5, 2, 1)
-    check p.debugParse("\nfoo\no") == $('\n', 5, 1, 4)
-    check p.debugParse("\nfooo\n") == $('o', 5, 1, 4)
+    check p.debugParse("\n\nfooo", withPosition = true) == $('o', "o", 6, 2, 3)
+    check p.debugParse("\nf\nooo", withPosition = true) == $('o', "o", 6, 2, 2)
+    check p.debugParse("\nfo\noo", withPosition = true) == $('o', "o", 6, 2, 1)
+    check p.debugParse("\nfoo\no", withPosition = true) == $('\n', "o", 6, 1, 4)
+    check p.debugParse("\nfooo\n", withPosition = true) == $('o', "\n", 6, 1, 4)
 
-    check p.debugParse("\nfo\noo") == $('o', 5, 2, 1)
-    check p.debugParse("f\no\noo") == $('o', 5, 2, 1)
-    check p.debugParse("fo\n\noo") == $('o', 5, 2, 1)
-    check p.debugParse("foo\n\no") == $('\n', 5, 1, 0)
-    check p.debugParse("foo\no\n") == $('o', 5, 1, 1)
+    check p.debugParse("\nfo\noo", withPosition = true) == $('o', "o", 6, 2, 1)
+    check p.debugParse("f\no\noo", withPosition = true) == $('o', "o", 6, 2, 1)
+    check p.debugParse("fo\n\noo", withPosition = true) == $('o', "o", 6, 2, 1)
+    check p.debugParse("foo\n\no", withPosition = true) == $('\n', "o", 6, 1, 0)
+    check p.debugParse("foo\no\n", withPosition = true) == $('o', "\n", 6, 1, 1)
 
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "any character"]), 0, 0, 0)
+    check p.debugParse("", withPosition = true) == $(unexpected: "end of input", expected: @[
+        "any character"])
 
   test "error messages":
     let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
@@ -216,28 +188,25 @@ expecting "world" or "joe""""
 suite "parser combinators":
   test "<|>":
     let p = ch('h') <|> ch('e')
-    check p.debugParse("hello") == $('h', 1, 0, 1)
-    check p.debugParse("ehllo") == $('e', 1, 0, 1)
-    check p.debugParse("ello") == $('e', 1, 0, 1)
-    check p.debugParse("hllo") == $('h', 1, 0, 1)
-    check p.debugParse("llo") == $((unexpected: "\'l\'", expected: @["\'h\'",
-        "\'e\'"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'", "\'e\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $('h', "ello")
+    check p.debugParse("ehllo") == $('e', "hllo")
+    check p.debugParse("ello") == $('e', "llo")
+    check p.debugParse("hllo") == $('h', "llo")
+    check p.debugParse("llo") == $(unexpected: "\'l\'", expected: @["\'h\'",
+        "\'e\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'", "\'e\'"])
 
   test ">>":
     let p = ch('h') >> ch('e')
-    check p.debugParse("hello") == $('e', 2, 0, 2)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("hllo") == $((unexpected: "\'l\'", expected: @["\'e\'"]),
-        1, 0, 1)
-    check p.debugParse("llo") == $((unexpected: "\'l\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("heklo") == $('e', 2, 0, 2)
-    check p.debugParse("helko") == $('e', 2, 0, 2)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $('e', "llo")
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @["\'h\'"])
+    check p.debugParse("hllo") == $(unexpected: "\'l\'", expected: @["\'e\'"])
+    check p.debugParse("llo") == $(unexpected: "\'l\'", expected: @["\'h\'"])
+    check p.debugParse("heklo") == $('e', "klo")
+    check p.debugParse("helko") == $('e', "lko")
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'"])
 
     check (ch('h') >> ch('e')).debugParse("hello") == (ch('h') *> ch(
         'e')).debugParse("hello")
@@ -256,38 +225,31 @@ suite "parser combinators":
 
   test "*>":
     let p = (ch('h') >> ch('e')) *> ch('l') >> ch('l')
-    check p.debugParse("hello") == $('l', 4, 0, 4)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("hllo") == $((unexpected: "\'l\'", expected: @["\'e\'"]),
-        1, 0, 1)
-    check p.debugParse("llo") == $((unexpected: "\'l\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("heklo") == $((unexpected: "\'k\'", expected: @[
-        "\'l\'"]), 2, 0, 2)
-    check p.debugParse("helko") == $((unexpected: "\'k\'", expected: @[
-        "\'l\'"]), 3, 0, 3)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $('l', "o")
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @["\'h\'"])
+    check p.debugParse("hllo") == $(unexpected: "\'l\'", expected: @["\'e\'"])
+    check p.debugParse("llo") == $(unexpected: "\'l\'", expected: @["\'h\'"])
+    check p.debugParse("heklo") == $(unexpected: "\'k\'", expected: @[
+        "\'l\'"])
+    check p.debugParse("helko") == $(unexpected: "\'k\'", expected: @[
+        "\'l\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'"])
 
   test "<*":
     let p = ch('a') <* ch('-')
-    check p.debugParse("a-") == $('a', 2, 0, 2)
-    check p.debugParse("aa-") == $('a', 1, 0, 1)
-    check p.debugParse("b-") == $((unexpected: "\'b\'", expected: @["\'a\'"]),
-        0, 0, 0)
-    check p.debugParse("-") == $((unexpected: "\'-\'", expected: @["\'a\'"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'a\'"]), 0, 0, 0)
+    check p.debugParse("a-") == $('a', "")
+    check p.debugParse("aa-") == $('a', "a-")
+    check p.debugParse("b-") == $(unexpected: "\'b\'", expected: @["\'a\'"])
+    check p.debugParse("-") == $(unexpected: "\'-\'", expected: @["\'a\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'a\'"])
 
   test "<$":
     let p = true <$ (ch('h') >> ch('e'))
-    check p.debugParse("hello") == $(true, 2, 0, 2)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("hllo") == $((unexpected: "\'l\'", expected: @["\'e\'"]),
-        1, 0, 1)
-    check p.debugParse("llo") == $((unexpected: "\'l\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $(true, "llo")
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @["\'h\'"])
+    check p.debugParse("hllo") == $(unexpected: "\'l\'", expected: @["\'e\'"])
+    check p.debugParse("llo") == $(unexpected: "\'l\'", expected: @["\'h\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'"])

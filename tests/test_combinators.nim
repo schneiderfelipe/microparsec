@@ -12,11 +12,11 @@ suite "basic combinators":
 
   test "<?>":
     let p = "if" <$ (ch('i') >> ch 'f') <?> "if statement"
-    check p.debugParse("if 1 > 0") == $("if", 2, 0, 2)
-    check p.debugParse("f 1 > 0") == $((unexpected: "\'f\'", expected: @[
-        "if statement"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "if statement"]), 0, 0, 0)
+    check p.debugParse("if 1 > 0") == $("if", " 1 > 0")
+    check p.debugParse("f 1 > 0") == $(unexpected: "\'f\'", expected: @[
+        "if statement"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "if statement"])
 
   test "choice":
     let
@@ -39,11 +39,11 @@ suite "basic combinators":
 
   test "option":
     let p = option('c', ch 'a')
-    check p.debugParse("aa") == $('a', 1, 0, 1)
-    check p.debugParse("a") == $('a', 1, 0, 1)
-    check p.debugParse("ba") == $('c', 0, 0, 0)
-    check p.debugParse("b") == $('c', 0, 0, 0)
-    check p.debugParse("") == $('c', 0, 0, 0)
+    check p.debugParse("aa") == $('a', "a")
+    check p.debugParse("a") == $('a', "")
+    check p.debugParse("ba") == $('c', "ba")
+    check p.debugParse("b") == $('c', "b")
+    check p.debugParse("") == $('c', "")
 
   test "many1":
     let p = many1(ch 'h')
@@ -51,31 +51,29 @@ suite "basic combinators":
     # does not work (such as comparing tuples and one of the fields are
     # seq[char]/string! We need to specialize some functions to return string
     # instead of seq[char], and get rid of all "newSeq[char]" everywhere.
-    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
-    check p.debugParse("hello") == $(@['h'], 1, 0, 1)
-    check p.debugParse("hhello") == $(@['h', 'h'], 2, 0, 2)
-    check p.debugParse("hhhello") == $(@['h', 'h', 'h'], 3, 0, 3)
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
+    check p.debugParse("hello") == $(@['h'], "ello")
+    check p.debugParse("hhello") == $(@['h', 'h'], "ello")
+    check p.debugParse("hhhello") == $(@['h', 'h', 'h'], "ello")
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @["\'h\'"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'"])
 
   test "sepBy":
     let p = sepBy(many1 digit, ch ',')
-    check p.debugParse("1,2,3,4") == $(@[@['1'], @['2'], @['3'], @['4']], 7, 0, 7)
-    check p.debugParse("11,22") == $(@[@['1', '1'], @['2', '2']], 5, 0, 5)
+    check p.debugParse("1,2,3,4") == $(@[@['1'], @['2'], @['3'], @['4']], "")
+    check p.debugParse("11,22") == $(@[@['1', '1'], @['2', '2']], "")
 
-    check p.debugParse("11 ,22") == $(@[@['1', '1']], 2, 0, 2)
-    check p.debugParse("11, 22") == $(@[@['1', '1']], 3, 0, 3)
-    check p.debugParse("11,,22") == $(@[@['1', '1']], 3, 0, 3)
-    check p.debugParse(",") == $(newSeq[seq[char]](), 0, 0, 0)
-    check p.debugParse("") == $(newSeq[seq[char]](), 0, 0, 0)
+    check p.debugParse("11 ,22") == $(@[@['1', '1']], " ,22")
+    check p.debugParse("11, 22") == $(@[@['1', '1']], " 22")
+    check p.debugParse("11,,22") == $(@[@['1', '1']], ",22")
+    check p.debugParse(",") == $(newSeq[seq[char]](), ",")
+    check p.debugParse("") == $(newSeq[seq[char]](), "")
 
     # The example below is from
     # <https://github.com/mrkkrp/megaparsec/issues/401#issue-572499736>.
     func foo[R, S, T](p: Parser[R], sep: Parser[S], q: Parser[T]): Parser[void] =
       sepBy(p, sep) >> optional(sep >> q)
-    check foo(str "a", str " ", str "b").debugParse("a a b") == $(4, 0, 4)
+    check foo(str "a", str " ", str "b").debugParse("a a b") == "(\"b\")"
 
   test "sepBy1":
     let
@@ -88,59 +86,56 @@ suite "basic combinators":
     check p.debugParse("11 ,22") == q.debugParse("11 ,22")
     check p.debugParse("11, 22") == q.debugParse("11, 22")
     check p.debugParse("11,,22") == q.debugParse("11,,22")
-    check p.debugParse(",") == $((unexpected: "\',\'", expected: @["digit"]), 0, 0, 0)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "digit"]), 0, 0, 0)
+    check p.debugParse(",") == $(unexpected: "\',\'", expected: @["digit"])
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "digit"])
 
   test "manyTill":
     let p = manyTill(many(space) >> digit, ch '.')
-    check p.debugParse("1 2  3\n4.") == $(@['1', '2', '3', '4'], 9, 1, 2)
-    check p.debugParse("1 2  a\n4.") == $((unexpected: "\'a\'", expected: @[
-        "digit"]), 5, 0, 5)
-    check p.debugParse("1 2  3\n4") == $((unexpected: "end of input",
-        expected: @["digit"]), 8, 1, 1)
+    check p.debugParse("1 2  3\n4.") == $(@['1', '2', '3', '4'], "")
+    check p.debugParse("1 2  a\n4.") == $(unexpected: "\'a\'", expected: @[
+        "digit"])
+    check p.debugParse("1 2  3\n4") == $(unexpected: "end of input",
+        expected: @["digit"])
 
     let simpleComment = str("<!--") >> manyTill(anyChar, str "-->")
-    check simpleComment.debugParse("<!-- a -->") == $(@[' ', 'a', ' '], 10, 0, 10)
-    check simpleComment.debugParse("<!-- a") == $((unexpected: "end of input",
-        expected: @["any character"]), 6, 0, 6)
-    check simpleComment.debugParse("a -->") == $((unexpected: "\'a\'",
-        expected: @["\"<!--\""]), 0, 0, 0)
-    check simpleComment.debugParse("-->") == $((unexpected: "\'-\'",
-        expected: @["\"<!--\""]), 0, 0, 0)
-    check simpleComment.debugParse("") == $((unexpected: "end of input",
-        expected: @["\"<!--\""]), 0, 0, 0)
+    check simpleComment.debugParse("<!-- a -->") == $(@[' ', 'a', ' '], "")
+    check simpleComment.debugParse("<!-- a") == $(unexpected: "end of input",
+        expected: @["any character"])
+    check simpleComment.debugParse("a -->") == $(unexpected: "\'a\'",
+        expected: @["\"<!--\""])
+    check simpleComment.debugParse("-->") == $(unexpected: "\'-\'",
+        expected: @["\"<!--\""])
+    check simpleComment.debugParse("") == $(unexpected: "end of input",
+        expected: @["\"<!--\""])
 
   test "skipMany":
     let p = skipMany(ch 'h')
-    check p.debugParse("ello") == $(0, 0, 0)
-    check p.debugParse("hello") == $(1, 0, 1)
-    check p.debugParse("hhello") == $(2, 0, 2)
-    check p.debugParse("hhhello") == $(3, 0, 3)
-    check p.debugParse("") == $(0, 0, 0)
+    check p.debugParse("ello") == "(\"ello\")"
+    check p.debugParse("hello") == "(\"ello\")"
+    check p.debugParse("hhello") == "(\"ello\")"
+    check p.debugParse("hhhello") == "(\"ello\")"
 
   test "skipMany1":
     let p = skipMany1(ch 'h')
-    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
-        0, 0, 0)
-    check p.debugParse("hello") == $(1, 0, 1)
-    check p.debugParse("hhello") == $(2, 0, 2)
-    check p.debugParse("hhhello") == $(3, 0, 3)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'h\'"]), 0, 0, 0)
+    check p.debugParse("ello") == $(unexpected: "\'e\'", expected: @["\'h\'"])
+    check p.debugParse("hello") == "(\"ello\")"
+    check p.debugParse("hhello") == "(\"ello\")"
+    check p.debugParse("hhhello") == "(\"ello\")"
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'h\'"])
 
   test "count":
     let p = count(1, ch 'a')
-    check p.debugParse("aa") == $(@['a'], 1, 0, 1)
-    check p.debugParse("a") == $(@['a'], 1, 0, 1)
-    check p.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'a\'"]), 0, 0, 0)
+    check p.debugParse("aa") == $(@['a'], "a")
+    check p.debugParse("a") == $(@['a'], "")
+    check p.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'a\'"])
 
     let q = count(2, ch 'a')
-    check q.debugParse("aa") == $(@['a', 'a'], 2, 0, 2)
-    check q.debugParse("ab") == $((unexpected: "\'b\'", expected: @["\'a\'"]),
-        1, 0, 1)
-    check q.debugParse("a") == $((unexpected: "end of input", expected: @[
-        "\'a\'"]), 1, 0, 1)
-    check q.debugParse("") == $((unexpected: "end of input", expected: @[
-        "\'a\'"]), 0, 0, 0)
+    check q.debugParse("aa") == $(@['a', 'a'], "")
+    check q.debugParse("ab") == $(unexpected: "\'b\'", expected: @["\'a\'"])
+    check q.debugParse("a") == $(unexpected: "end of input", expected: @[
+        "\'a\'"])
+    check q.debugParse("") == $(unexpected: "end of input", expected: @[
+        "\'a\'"])

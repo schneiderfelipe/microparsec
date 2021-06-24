@@ -154,7 +154,7 @@ proc readLastStr*(state: ParseState, length: int): string {.inline.} =
   ## Reads a string of length `length` from the `ParseState` `state` *ending*
   ## at the current position. Raises `IOError` if an error occurred.
   state.stream.setPosition state.stream.getPosition - length
-  state.stream.readStr(length, result)
+  result = state.stream.readStr(length)
 
 proc readStr*(state: ParseState, length: int): string {.inline.} =
   ## Reads a string of length `length` from the `ParseState` `state`
@@ -182,22 +182,20 @@ template parse*[T](parser: Parser[T], x: ParseState): ParseResult[T] =
   parser x
 
 
-proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
+proc debugParse*[T](parser: Parser[T], x: auto, withPosition = false): string {.inline.} =
   let
     state = newParseState x
     res = parser state
+  result &= '('
   if res.isOk:
-    return $(res.get, state.stream.getPosition, state.position.line,
-        state.position.column)
-  return $((unexpected: res.error.unexpected, expected: res.error.expected),
-        state.stream.getPosition, state.position.line, state.position.column)
-
-proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
-  let
-    state = newParseState x
-    res = parser state
-  if res.isOk:
-    return $(state.stream.getPosition, state.position.line,
-        state.position.column)
-  return $((unexpected: res.error.unexpected, expected: res.error.expected),
-        state.stream.getPosition, state.position.line, state.position.column)
+    when T isnot void:
+      result.addQuoted res.get
+      result &= ", "
+    result.addQuoted state.stream.readAll
+    if withPosition:
+      result &= ", " & $state.getPosition & ", " & $state.position.line & ", " & $state.position.column
+  else:
+    result &= "unexpected: "
+    result.addQuoted res.error.unexpected
+    result &= ", expected: " & $res.error.expected
+  result &= ')'
