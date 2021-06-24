@@ -93,30 +93,41 @@ suite "basic combinators":
         "digit"]), 0, 0, 0)
 
   test "manyTill":
-    let p = manyTill(many(space) *> digit, ch '.')
+    let p = manyTill(many(space) >> digit, ch '.')
     check p.debugParse("1 2  3\n4.") == $(@['1', '2', '3', '4'], 9, 1, 2)
     check p.debugParse("1 2  a\n4.") == $((unexpected: "\'a\'", expected: @[
         "digit"]), 5, 0, 5)
     check p.debugParse("1 2  3\n4") == $((unexpected: "end of input",
         expected: @["digit"]), 8, 1, 1)
 
-    let simpleComment = str("<!--") *> manyTill(anyChar, str "-->")
+    let simpleComment = str("<!--") >> manyTill(anyChar, str "-->")
     check simpleComment.debugParse("<!-- a -->") == $(@[' ', 'a', ' '], 10, 0, 10)
     check simpleComment.debugParse("<!-- a") == $((unexpected: "end of input",
         expected: @["any character"]), 6, 0, 6)
-    check simpleComment.debugParse("a -->") == $(@['a', ' '], 5, 0, 5)
-    check simpleComment.debugParse("-->") == $(newSeq[char](), 3, 0, 3)
+    check simpleComment.debugParse("a -->") == $((unexpected: "\'a\'",
+        expected: @["\"<!--\""]), 0, 0, 0)
+    check simpleComment.debugParse("-->") == $((unexpected: "\'-\'",
+        expected: @["\"<!--\""]), 0, 0, 0)
     check simpleComment.debugParse("") == $((unexpected: "end of input",
-        expected: @["any character"]), 0, 0, 0)
+        expected: @["\"<!--\""]), 0, 0, 0)
 
   test "skipMany":
-    let p = skipMany(ch('h'))
-    check p.debugParse("hello") == $(1, 0, 1)
+    let p = skipMany(ch 'h')
+    check p.debugParse("ello") == $(0, 0, 0)
     check p.debugParse("hello") == $(1, 0, 1)
     check p.debugParse("hhello") == $(2, 0, 2)
     check p.debugParse("hhhello") == $(3, 0, 3)
-    check p.debugParse("ello") == $(0, 0, 0)
     check p.debugParse("") == $(0, 0, 0)
+
+  test "skipMany1":
+    let p = skipMany1(ch 'h')
+    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
+        0, 0, 0)
+    check p.debugParse("hello") == $(1, 0, 1)
+    check p.debugParse("hhello") == $(2, 0, 2)
+    check p.debugParse("hhhello") == $(3, 0, 3)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "\'h\'"]), 0, 0, 0)
 
   test "count":
     let p = count(1, ch 'a')

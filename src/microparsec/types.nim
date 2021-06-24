@@ -89,16 +89,15 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
       else:
         ""
 
-    heading &
+    return heading &
     positionInfo & '\n' &
     margin & '\n' &
     lineStr & " | " & offendingLine & '\n' &
     margin & ' ' & markingCaret & '\n' &
     unexpectedInfo &
     expectingInfo
-  else:
-    debugEcho "asdf"
-    "Got " & $res.get
+
+  return "Got " & $res.get
 
 
 template atEnd*(state: ParseState): bool =
@@ -175,10 +174,9 @@ proc debugParse*[T](parser: Parser[T], x: auto): string {.inline.} =
     state = newParseState x
     res = parser state
   if res.isOk:
-    $(res.get, state.stream.getPosition, state.position.line,
+    return $(res.get, state.stream.getPosition, state.position.line,
         state.position.column)
-  else:
-    $((unexpected: res.error.unexpected, expected: res.error.expected),
+  return $((unexpected: res.error.unexpected, expected: res.error.expected),
         state.stream.getPosition, state.position.line, state.position.column)
 
 proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
@@ -186,7 +184,7 @@ proc debugParse*(parser: Parser[void], x: auto): string {.inline.} =
     state = newParseState x
     res = parser state
   if res.isOk:
-    $(state.stream.getPosition, state.position.line, state.position.column)
-  else:
-    $((unexpected: res.error.unexpected, expected: res.error.expected),
+    return $(state.stream.getPosition, state.position.line,
+        state.position.column)
+  return $((unexpected: res.error.unexpected, expected: res.error.expected),
         state.stream.getPosition, state.position.line, state.position.column)

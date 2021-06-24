@@ -22,13 +22,12 @@ func satisfy*(p: char -> bool, expected: openArray[string] = []): Parser[
   return proc(state: ParseState): ParseResult[char] =
     if not state.atEnd:
       let h = state.readChar
-      if p h:
+      return if p h:
         ParseResult[char].ok h
       else:
         state.stepBack
         fail[char](quoted h, expected, state, message = "satisfy")
-    else:
-      fail[char]("end of input", expected, state, message = "satisfy")
+    return fail[char]("end of input", expected, state, message = "satisfy")
 
 func skip*(p: char -> bool, expected: openArray[string] = []): Parser[void] {.inline.} =
   ## Create a `Parser` that succeeds for any character for which a predicate
@@ -43,13 +42,12 @@ func skip*(p: char -> bool, expected: openArray[string] = []): Parser[void] {.in
   return proc(state: ParseState): ParseResult[void] =
     if not state.atEnd:
       let h = state.readChar
-      if p h:
+      return if p h:
         ParseResult[void].ok
       else:
         state.stepBack
         fail[void](quoted h, expected, state, message = "satisfy")
-    else:
-      fail[void]("end of input", expected, state, message = "satisfy")
+    return fail[void]("end of input", expected, state, message = "satisfy")
 
 func satisfyWith*[T](f: char -> T, p: T -> bool, expected: openArray[string] = [
     ]): Parser[T] {.inline.} =
@@ -66,13 +64,12 @@ func satisfyWith*[T](f: char -> T, p: T -> bool, expected: openArray[string] = [
   return proc(state: ParseState): ParseResult[T] =
     if not state.atEnd:
       let c = f state.readChar
-      if p c:
+      return if p c:
         ParseResult[T].ok c
       else:
         state.stepBack
         fail[T](quoted c, expected, state, message = "satisfyWith")
-    else:
-      fail[T]("end of input", expected, state, message = "satisfyWith")
+    return fail[T]("end of input", expected, state, message = "satisfyWith")
 
 func inClass*(s: auto): (char -> bool) =
   ## Match any character in a set.
@@ -110,9 +107,8 @@ proc peekCh*(state: ParseState): ParseResult[Option[char]] =
   ## combinators such as `many`, because such parsers loop until a failure
   ## occurs. Careless use will thus result in an infinite loop.
   if not state.atEnd:
-    ParseResult[Option[char]].ok some state.peekChar
-  else:
-    ParseResult[Option[char]].ok none char
+    return ParseResult[Option[char]].ok some state.peekChar
+  return ParseResult[Option[char]].ok none char
 
 proc peekChF*(state: ParseState): ParseResult[char] =
   ## A `Parser` that matches any character, to perform lookahead. Does not
@@ -121,6 +117,6 @@ proc peekChF*(state: ParseState): ParseResult[char] =
   ## This is currently called `peekCh` to avoid conflict with other function,
   ## but that will change in the future.
   if not state.atEnd:
-    ParseResult[char].ok state.peekChar
-  else:
-    fail[char]("end of input", ["any character"], state, message = "peekChF")
+    return ParseResult[char].ok state.peekChar
+  return fail[char]("end of input", ["any character"], state,
+      message = "peekChF")

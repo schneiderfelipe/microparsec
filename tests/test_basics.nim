@@ -234,18 +234,41 @@ suite "parser combinators":
         1, 0, 1)
     check p.debugParse("llo") == $((unexpected: "\'l\'", expected: @["\'h\'"]),
         0, 0, 0)
+    check p.debugParse("heklo") == $('e', 2, 0, 2)
+    check p.debugParse("helko") == $('e', 2, 0, 2)
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "\'h\'"]), 0, 0, 0)
+
+    check (ch('h') >> ch('e')).debugParse("hello") == (ch('h') *> ch(
+        'e')).debugParse("hello")
+    check (ch('h') >> ch('e')).debugParse("ello") == (ch('h') *> ch(
+        'e')).debugParse("ello")
+    check (ch('h') >> ch('e')).debugParse("hllo") == (ch('h') *> ch(
+        'e')).debugParse("hllo")
+    check (ch('h') >> ch('e')).debugParse("llo") == (ch('h') *> ch(
+        'e')).debugParse("llo")
+    check (ch('h') >> ch('e')).debugParse("heklo") == (ch('h') *> ch(
+        'e')).debugParse("heklo")
+    check (ch('h') >> ch('e')).debugParse("helko") == (ch('h') *> ch(
+        'e')).debugParse("helko")
+    check (ch('h') >> ch('e')).debugParse("") == (ch('h') *> ch(
+        'e')).debugParse("")
 
   test "*>":
     let p = (ch('h') >> ch('e')) *> ch('l') >> ch('l')
     check p.debugParse("hello") == $('l', 4, 0, 4)
-    check p.debugParse("llo") == $('l', 2, 0, 2)
+    check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'"]),
+        0, 0, 0)
+    check p.debugParse("hllo") == $((unexpected: "\'l\'", expected: @["\'e\'"]),
+        1, 0, 1)
+    check p.debugParse("llo") == $((unexpected: "\'l\'", expected: @["\'h\'"]),
+        0, 0, 0)
     check p.debugParse("heklo") == $((unexpected: "\'k\'", expected: @[
         "\'l\'"]), 2, 0, 2)
-    # check p.debugParse("ello") == $((unexpected: "\'e\'", expected: @["\'h\'", "\'l\'"]), 0, 0, 0)
-    # check p.debugParse("hllo") == $((unexpected: "\'l\'", expected: @["\'e\'"]), 1, 0, 1)
-    # check p.debugParse("") == $((unexpected: "end of input", expected: @["\'h\'", "\'l\'"]), 0, 0, 0)
+    check p.debugParse("helko") == $((unexpected: "\'k\'", expected: @[
+        "\'l\'"]), 3, 0, 3)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "\'h\'"]), 0, 0, 0)
 
   test "<*":
     let p = ch('a') <* ch('-')

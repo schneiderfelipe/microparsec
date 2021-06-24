@@ -34,9 +34,8 @@ func `<?>`*[T](parser: Parser[T], expected: string): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
     let res = parser state
     if res.isOk:
-      res
-    else:
-      fail[T](res.error.unexpected, [expected], state, res.error.message)
+      return res
+    return fail[T](res.error.unexpected, [expected], state, res.error.message)
 
 func choice*[T](parsers: openArray[Parser[T]]): Parser[T] {.inline.} =
   ## A `Parser` that tries to apply the actions in a sequence in order, until
@@ -68,7 +67,6 @@ func choice*[T](parsers: openArray[Parser[T]]): Parser[T] {.inline.} =
           if expected notin expecteds:
             expecteds.add expected
         continue
-
     result = fail[T](
       result.error.unexpected,
       expecteds,
@@ -112,17 +110,16 @@ func sepBy1*[S, T](parser: Parser[T], separator: Parser[S]): Parser[seq[T]] {.in
       values: seq[T]
     if value.isOk:
       values.add value.get
-      let separatorParser = separator *> parser
+      let separatorParser = separator >> parser
       while (value = separatorParser state; value.isOk):
         values.add value.get
-      result = ParseResult[seq[T]].ok values
-    else:
-      result = fail[seq[T]](
-        value.error.unexpected,
-        value.error.expected,
-        state,
-        value.error.message,
-      )
+      return ParseResult[seq[T]].ok values
+    return fail[seq[T]](
+      value.error.unexpected,
+      value.error.expected,
+      state,
+      value.error.message,
+    )
 
 func manyTill*[S, T](parser: Parser[T], endparser: Parser[S]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies an action *zero* or more times until another
@@ -147,7 +144,7 @@ func manyTill*[S, T](parser: Parser[T], endparser: Parser[S]): Parser[seq[T]] {.
           state,
           value.error.message,
         )
-    ParseResult[seq[T]].ok values
+    return ParseResult[seq[T]].ok values
 
 func skipMany*[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## Build a `Parser` that skips *zero* or more instances of an action.
@@ -156,6 +153,10 @@ func skipMany*[T](parser: Parser[T]): Parser[void] {.inline.} =
     while (value = parser state; value.isOk):
       discard
     ParseResult[void].ok
+
+template skipMany1*[T](parser: Parser[T]): Parser[void] =
+  ## Build a `Parser` that skips *one* or more instances of an action.
+  parser >> skipMany parser
 
 func count*[T](n: int, parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## A `Parser` that applies the given action repeatedly, returning every
@@ -201,9 +202,9 @@ template eof*(state: ParseState): ParseResult[void] =
   ## A `Parser` that only succeeds at the end of the input. This is not a
   ## primitive parser but it is defined using `notFollowedBy`.
   if state.atEnd:
-    ParseResult[void].ok
-  else:
-    fail[void](quoted state.peekChar, ["end of input"], state, message = "eof")
+    return ParseResult[void].ok
+  return fail[void](quoted state.peekChar, ["end of input"], state,
+      message = "eof")
 
 func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
   ## A `Parser` that only succeeds when `parser` fails. This parser does not
@@ -213,7 +214,7 @@ func notFollowedBy[T](parser: Parser[T]): Parser[void] {.inline.} =
     let
       position = state.getPosition
       res = parser state
-    if res.isErr:
+    result = if res.isErr:
       ParseResult[void].ok
     else:
       fail[void](quoted res.get, [], state, message = "notFollowedBy")

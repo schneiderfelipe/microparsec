@@ -39,11 +39,6 @@ func pure*[T](x: T): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
     ParseResult[T].ok x
 
-func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
-  return func(state: ParseState): ParseResult[T] =
-    discard parser0 state
-    parser1 state
-
 func liftA2*[R, S, T](f: (R, S) -> T, parser0: Parser[R], parser1: Parser[
     S]): Parser[T] {.inline.} =
   ## Lift a binary function to actions.
@@ -59,32 +54,31 @@ func flatMap*[S, T](parser: Parser[S], f: S -> Parser[T]): Parser[T] {.inline.} 
   return proc(state: ParseState): ParseResult[T] =
     let res = parser state
     if res.isOk:
-      f(res.get)state
-    else:
-      fail[T]res
+      return f(res.get)state
+    return fail[T]res
 
 func `<|>`*[T](parser0, parser1: Parser[T]): Parser[T] {.inline.} =
   ## Create a `Parser` as a choice combination between two other `Parser`s.
   return func(state: ParseState): ParseResult[T] =
     let res0 = parser0 state
     if res0.isOk:
-      res0
+      return res0
+
+    let res1 = parser1 state
+    if res1.isOk:
+      return res1
+
+    # Report the last found piece, so that it matches the state
+    let message = if res0.error.message != res1.error.message:
+      res0.error.message & res1.error.message
     else:
-      let res1 = parser1 state
-      if res1.isOk:
-        res1
-      else:
-        # Report the last found piece, so that it matches the state
-        let message = if res0.error.message != res1.error.message:
-          res0.error.message & res1.error.message
-        else:
-          res0.error.message
-        fail[T](
-          res1.error.unexpected,
-          res0.error.expected & res1.error.expected,
-          state,
-          message,
-        )
+      res0.error.message
+    return fail[T](
+      res1.error.unexpected,
+      res0.error.expected & res1.error.expected,
+      state,
+      message,
+    )
 
 func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
   ## Build a `Parser` that applies another `Parser` *zero* or more times and
@@ -96,6 +90,27 @@ func many*[T](parser: Parser[T]): Parser[seq[T]] {.inline.} =
     while (value = parser state; value.isOk):
       values.add value.get
     ParseResult[seq[T]].ok values
+
+func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
+  parser.map constant[S, T]x
+
+func `<*`*[T, S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
+  return func(state: ParseState): ParseResult[T] =
+    result = parser0 state
+    if result.isOk:
+      discard parser1 state
+
+func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
+  return func(state: ParseState): ParseResult[T] =
+    let res = parser0 state
+    if res.isOk:
+      return parser1 state
+    return fail[T](
+      res.error.unexpected,
+      res.error.expected,
+      state,
+      res.error.message,
+    )
 
 template `>>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] =
   parser0.flatMap constant[S, Parser[T]]parser1
