@@ -1,19 +1,25 @@
 # Microparsec ⭐
 
-Microparsec is a fast
+[WIP] Microparsec is a fast
 [parser combinator library](https://en.wikipedia.org/wiki/Parser_combinator)
 with excellent error messages.
 
 ```nim
 import microparsec
-let p = str("hello") >> many(ch ' ') >> str("world!")
-p.parse("hello     world?")
+let p = between(
+  ch('{'),
+  str("hello") >> many(space) >> str("world!"),
+  ch('}')
+)
+echo p.parse("{hello\n world?}")
 ```
 ```
-0:15:(15):
+Failed reading: satisfy
+
+1:6:(13):
   |
-0 | hello     world?
-  |                ^
+1 |  world?}
+  |       ^
 unexpected '?'
 expecting "world!"
 ```
@@ -32,14 +38,14 @@ Further inspiration was taken from
 and
 [Megaparsec](https://github.com/mrkkrp/megaparsec).
 
-## References
+## Some references
 
 - Leijen, Daan & Meijer, Erik. (2001).
   [**Parsec: Direct Style Monadic Parser Combinators For The Real World**](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf).
 - Holden, Daniel. (2014).
   [**You could have invented Parser Combinators**](http://theorangeduck.com/page/you-could-have-invented-parser-combinators).
 
-## Similar projects
+## Inspiring projects
 
 - [Attoparsec](https://github.com/haskell/attoparsec) (Haskell)
 - [Megaparsec](https://github.com/mrkkrp/megaparsec) (Haskell)
