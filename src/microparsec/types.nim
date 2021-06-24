@@ -101,12 +101,12 @@ proc `$`*[T](res: ParseResult[T]): string {.inline.} =
 
 
 template atEnd*(state: ParseState): bool =
-  ## Checks if more data can be read from `s`.
+  ## Checks if more data can be read from `state`.
   ## Returns `true` if all data has been read.
   state.stream.atEnd
 
 proc peekChar*(state: ParseState): char {.inline.} =
-  ## Peeks a char from the `ParseState` `s`.
+  ## Peeks a char from the `ParseState` `state`.
   ## Raises `IOError` if an error occurred.
   ## Returns '\0' as an EOF marker.
   state.stream.peekChar
@@ -119,12 +119,12 @@ template stepBack*(state: ParseState) =
 
 
 template getPosition*(state: ParseState): int =
-  ## Retrieves the current position in the `ParseState` `s`.
+  ## Retrieves the current position in the `ParseState` `state`.
   state.stream.getPosition
 
 
 template readChar*(state: ParseState): char =
-  ## Reads a char from the `ParseState` `s`.
+  ## Reads a char from the `ParseState` `state`.
   ## Raises `IOError` if an error occurred.
   ## Returns '\0' as an EOF marker.
   state.lastPosition = state.position
@@ -150,6 +150,19 @@ template readChar*(state: ParseState): char =
       state.position.line += 1
   c
 
+proc readLastStr*(state: ParseState, length: int): string {.inline.} =
+  ## Reads a string of length `length` from the `ParseState` `state` *ending*
+  ## at the current position. Raises `IOError` if an error occurred.
+  state.stream.setPosition state.stream.getPosition - length
+  state.stream.readStr(length, result)
+
+proc readStr*(state: ParseState, length: int): string {.inline.} =
+  ## Reads a string of length `length` from the `ParseState` `state`
+  ## *starting* at the current position. Raises `IOError` if an error occurred.
+  ##
+  ## **Note**: This function is experimental.
+  for _ in 0..<length:
+    result.add state.readChar
 
 func newParseState*(s: Stream): ParseState {.inline.} =
   ## Creates a new `ParseState` from the stream `s`.

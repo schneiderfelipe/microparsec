@@ -120,3 +120,17 @@ proc peekChF*(state: ParseState): ParseResult[char] =
     return ParseResult[char].ok state.peekChar
   return fail[char]("end of input", ["any character"], state,
       message = "peekChF")
+
+func match*[T](parser: Parser[T]): Parser[(string, T)] {.inline.} =
+  ## A `Parser` that returns both the result of a parse and the portion of the
+  ## input that was consumed while it was being parsed.
+  return proc(state: ParseState): ParseResult[(string, T)] =
+    let
+      start = state.getPosition
+      res = parser state
+      length = state.getPosition - start
+    if res.isOk:
+      ParseResult[(string, T)].ok (state.readLastStr length, res.get)
+    else:
+      fail[(string, T)](res.error.unexpected, res.error.expected, state,
+          res.error.message)

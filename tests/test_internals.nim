@@ -102,3 +102,14 @@ suite "single character parsers":
     check p.debugParse("f") == $('f', 0, 0, 0)
     check p.debugParse("") == $((unexpected: "end of input", expected: @[
         "any character"]), 0, 0, 0)
+
+  test "match":
+    let p = match(str("hello") >> many(space) >> str("world").map(x => true))
+    check p.debugParse("hello world") == $(("hello world", true), 11, 0, 11)
+    check p.debugParse("hello   world") == $(("hello   world", true), 13, 0, 13)
+    check p.debugParse("hello  joe") == $((unexpected: "\'j\'", expected: @[
+        "\"world\""]), 7, 0, 7)
+    check p.debugParse("foo") == $((unexpected: "\'f\'", expected: @[
+        "\"hello\""]), 0, 0, 0)
+    check p.debugParse("") == $((unexpected: "end of input", expected: @[
+        "\"hello\""]), 0, 0, 0)
