@@ -38,6 +38,12 @@ Further inspiration was taken from
 and
 [Megaparsec](https://github.com/mrkkrp/megaparsec).
 
+## Installation
+
+Microparsec supports Nim 1.2.6+ and can be installed using [Nimble](https://github.com/nim-lang/Nimble):
+
+    $ nimble install microparsec
+
 ## Some references
 
 - Leijen, Daan & Meijer, Erik. (2001).
