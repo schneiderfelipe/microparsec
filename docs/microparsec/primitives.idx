@@ -1,0 +1,14 @@
+identity	microparsec/primitives.html#identity,T	primitives: identity[T](x: T): T	
+compose	microparsec/primitives.html#compose,,	primitives: compose[R, S, T](f: R -&gt; S; g: S -&gt; T): R -&gt; T	
+constant	microparsec/primitives.html#constant,T	primitives: constant[S, T](x: T): (S -&gt; T)	
+quoted	microparsec/primitives.html#quoted.t,auto	primitives: quoted(x: auto): string	
+pure	microparsec/primitives.html#pure	primitives: pure(): Parser[void]	
+pure	microparsec/primitives.html#pure,T	primitives: pure[T](x: T): Parser[T]	
+liftA2	microparsec/primitives.html#liftA2,,Parser[R],Parser[S]	primitives: liftA2[R, S, T](f: (R, S) -&gt; T; parser0: Parser[R]; parser1: Parser[S]): Parser[\n    T]	
+flatMap	microparsec/primitives.html#flatMap,Parser[S],	primitives: flatMap[S, T](parser: Parser[S]; f: S -&gt; Parser[T]): Parser[T]	
+`&lt;|&gt;`	microparsec/primitives.html#<|>,Parser[T],Parser[T]	primitives: `&lt;|&gt;`[T](parser0, parser1: Parser[T]): Parser[T]	
+many	microparsec/primitives.html#many,Parser[T]	primitives: many[T](parser: Parser[T]): Parser[seq[T]]	
+`&lt;$`	microparsec/primitives.html#<$,T,Parser[S]	primitives: `&lt;$`[S, T](x: T; parser: Parser[S]): Parser[T]	
+`&lt;*`	microparsec/primitives.html#<*,Parser[T],Parser[S]	primitives: `&lt;*`[T, S](parser0: Parser[T]; parser1: Parser[S]): Parser[T]	
+`*&gt;`	microparsec/primitives.html#*>,Parser[S],Parser[T]	primitives: `*&gt;`[S, T](parser0: Parser[S]; parser1: Parser[T]): Parser[T]	
+`&gt;&gt;`	microparsec/primitives.html#>>.t,Parser[S],Parser[T]	primitives: `&gt;&gt;`[S; T](parser0: Parser[S]; parser1: Parser[T]): Parser[T]	

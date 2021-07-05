@@ -1,0 +1,6 @@
+map	microparsec.html#map,Parser[S],	microparsec: map[S, T](parser: Parser[S]; f: S -&gt; T): Parser[T]	
+`&lt;*&gt;`	microparsec.html#<*>,Parser[proc(S)],Parser[S]	microparsec: `&lt;*&gt;`[S, T](parser0: Parser[proc (i0: S): T]; parser1: Parser[S]): Parser[T]	
+str	microparsec.html#str,string,string	microparsec: str(s: string; t = &quot;&quot;): Parser[string]	
+digit	microparsec.html#digit	microparsec: digit	
+letter	microparsec.html#letter	microparsec: letter	
+space	microparsec.html#space	microparsec: space	

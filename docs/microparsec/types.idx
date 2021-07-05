@@ -1,0 +1,18 @@
+ParseState	microparsec/types.html#ParseState	types: ParseState	
+ParseResult	microparsec/types.html#ParseResult	types: ParseResult	
+Parser	microparsec/types.html#Parser	types: Parser	
+fail	microparsec/types.html#fail,string,openArray[string],ParseState,string	types: fail[T](unexpected: string; expected: openArray[string]; state: ParseState;\n        message = &quot;&quot;): ParseResult[T]	
+fail	microparsec/types.html#fail,ParseResult[auto]	types: fail[T](res: ParseResult[auto]): ParseResult[T]	
+`$`	microparsec/types.html#$,ParseResult[T]	types: `$`[T](res: ParseResult[T]): string	
+atEnd	microparsec/types.html#atEnd.t,ParseState	types: atEnd(state: ParseState): bool	
+peekChar	microparsec/types.html#peekChar,ParseState	types: peekChar(state: ParseState): char	
+stepBack	microparsec/types.html#stepBack.t,ParseState	types: stepBack(state: ParseState)	
+getPosition	microparsec/types.html#getPosition.t,ParseState	types: getPosition(state: ParseState): int	
+readChar	microparsec/types.html#readChar.t,ParseState	types: readChar(state: ParseState): char	
+readLastStr	microparsec/types.html#readLastStr,ParseState,int	types: readLastStr(state: ParseState; length: int): string	
+readStr	microparsec/types.html#readStr,ParseState,int	types: readStr(state: ParseState; length: int): string	
+newParseState	microparsec/types.html#newParseState,Stream	types: newParseState(s: Stream): ParseState	
+newParseState	microparsec/types.html#newParseState.t,string	types: newParseState(s: string): ParseState	
+parse	microparsec/types.html#parse.t,Parser[T],auto	types: parse[T; ](parser: Parser[T]; x: auto): ParseResult[T]	
+parse	microparsec/types.html#parse.t,Parser[T],ParseState	types: parse[T](parser: Parser[T]; x: ParseState): ParseResult[T]	
+debugParse	microparsec/types.html#debugParse,Parser[T],auto	types: debugParse[T](parser: Parser[T]; x: auto; withPosition = false): string	
