@@ -1,3 +1,7 @@
+<a href="http://schneiderfelipe.xyz/microparsec/">
+  <img alt="Documentation" src="https://img.shields.io/badge/docs-available-brightgreen"/>
+</a>
+
 # Microparsec ⭐
 
 [WIP] Microparsec is a fast
