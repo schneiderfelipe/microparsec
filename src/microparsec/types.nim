@@ -193,7 +193,8 @@ proc debugParse*[T](parser: Parser[T], x: auto, withPosition = false): string {.
       result &= ", "
     result.addQuoted state.stream.readAll
     if withPosition:
-      result &= ", " & $state.getPosition & ", " & $state.position.line & ", " & $state.position.column
+      result &= ", " & $state.getPosition & ", " & $state.position.line & ", " &
+          $state.position.column
   else:
     result &= "unexpected: "
     result.addQuoted res.error.unexpected

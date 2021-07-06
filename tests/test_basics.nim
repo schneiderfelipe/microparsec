@@ -112,20 +112,20 @@ suite "basic character parsers":
 suite "parsing utilities":
   test "position state":
     let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
-    check p.debugParse("foo", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
-    check p.debugParse("fooo", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
+    check p.debugParse("foo", withPosition = true) == $(
+        unexpected: "end of input", expected: @["any character"])
+    check p.debugParse("fooo", withPosition = true) == $(
+        unexpected: "end of input", expected: @["any character"])
     check p.debugParse("foooo", withPosition = true) == $('o', "", 5, 0, 5)
 
-    check p.debugParse("\nfoo", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
-    check p.debugParse("f\noo", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
-    check p.debugParse("fo\no", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
-    check p.debugParse("foo\n", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
+    check p.debugParse("\nfoo", withPosition = true) == $(
+        unexpected: "end of input", expected: @["any character"])
+    check p.debugParse("f\noo", withPosition = true) == $(
+        unexpected: "end of input", expected: @["any character"])
+    check p.debugParse("fo\no", withPosition = true) == $(
+        unexpected: "end of input", expected: @["any character"])
+    check p.debugParse("foo\n", withPosition = true) == $(
+        unexpected: "end of input", expected: @["any character"])
 
     check p.debugParse("\n\nfoo", withPosition = true) == $('o', "", 5, 2, 3)
     check p.debugParse("\nf\noo", withPosition = true) == $('o', "", 5, 2, 2)
@@ -136,7 +136,8 @@ suite "parsing utilities":
     check p.debugParse("f\nooo", withPosition = true) == $('o', "", 5, 1, 3)
     check p.debugParse("fo\noo", withPosition = true) == $('o', "", 5, 1, 2)
     check p.debugParse("foo\no", withPosition = true) == $('o', "", 5, 1, 1)
-    check p.debugParse("fooo\n", withPosition = true) == $('\n', "", 5, 0, 5) # Newline belongs to previous line
+    check p.debugParse("fooo\n", withPosition = true) == $('\n', "", 5, 0,
+        5) # Newline belongs to previous line
 
     check p.debugParse("\n\nfooo", withPosition = true) == $('o', "o", 6, 2, 3)
     check p.debugParse("\nf\nooo", withPosition = true) == $('o', "o", 6, 2, 2)
@@ -150,8 +151,8 @@ suite "parsing utilities":
     check p.debugParse("foo\n\no", withPosition = true) == $('\n', "o", 6, 1, 0)
     check p.debugParse("foo\no\n", withPosition = true) == $('o', "\n", 6, 1, 1)
 
-    check p.debugParse("", withPosition = true) == $(unexpected: "end of input", expected: @[
-        "any character"])
+    check p.debugParse("", withPosition = true) == $(unexpected: "end of input",
+        expected: @["any character"])
 
   test "error messages":
     let p = anyChar >> anyChar >> anyChar >> anyChar >> anyChar
