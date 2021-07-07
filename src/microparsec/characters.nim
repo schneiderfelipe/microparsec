@@ -3,8 +3,9 @@
 import strutils
 import sugar
 
-import types
+import combinators
 import internals
+import types
 
 func inClass*(cs: auto): (char -> bool) =
   ## Match any character in a set.
@@ -35,3 +36,7 @@ let
     satisfy(isSpaceAscii, ["space"])
     ## A `Parser` that consumes a single white space character (any character
     ## which satisfies `isSpaceAscii`). Returns the parsed character.
+
+  spaces*: Parser[void] =
+    skipMany space <?> "space"
+    ## Skips *zero* or more white space characters. See also ``skipMany``.

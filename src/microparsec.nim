@@ -1,4 +1,4 @@
-import strutils
+import strutils except spaces
 export toUpperAscii, toHex
 
 import sugar
@@ -20,7 +20,7 @@ export Parser, ParseResult, identity, compose, optional,
   sepBy1, many, many1, notChar, `<|>`, `<$`, `<*`, `*>`, liftA2, pure, eof,
   flatMap, `>>`, `$`, debugParse, parse, atEnd, setPosition, getPosition,
   attempt, `<?>`, choice, option, manyTill, skipMany, skipMany1, count, match,
-  inClass, notInClass, oneOf, noneOf, space
+  inClass, notInClass, oneOf, noneOf, space, spaces
 
 func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.

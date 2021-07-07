@@ -55,3 +55,11 @@ suite "single character parsers":
     check space.debugParse("\t") == $('\t', "")
     check space.debugParse("hello") == $(unexpected: "\'h\'", expected: @[
         "space"])
+
+  test "spaces":
+    check spaces.debugParse(" ") == "(\"\")"
+    check spaces.debugParse("     ") == "(\"\")"
+    check spaces.debugParse("\t") == "(\"\")"
+    check spaces.debugParse(" \t\n \n") == "(\"\")"
+    check spaces.debugParse("hello") == "(\"hello\")"
+    check spaces.debugParse("   \nhello") == "(\"hello\")"
