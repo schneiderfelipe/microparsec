@@ -30,22 +30,6 @@ suite "single character parsers":
     check p.debugParse("") == $(unexpected: "end of input", expected: @[
         "ord(x) < 97"])
 
-  test "inClass":
-    let
-      vowel = inClass "aeiou"
-      p = (satisfy vowel) <?> "vowel"
-    check p.debugParse("foo") == $(unexpected: "\'f\'", expected: @["vowel"])
-    check p.debugParse("oo") == $('o', "o")
-    check p.debugParse("") == $(unexpected: "end of input", expected: @[
-        "vowel"])
-
-    let
-      halfAlphabet = inClass {'a'..'n', 'A'..'N'}
-      q = (satisfy halfAlphabet) <?> "in half alphabet"
-    check q.debugParse("foo") == $('f', "oo")
-    check q.debugParse("oo") == $(unexpected: "\'o\'", expected: @[
-        "in half alphabet"])
-
   test "notInClass":
     let
       noVowel = notInClass "aeiou"

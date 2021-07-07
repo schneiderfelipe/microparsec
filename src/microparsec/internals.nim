@@ -71,11 +71,6 @@ func satisfyWith*[T](f: char -> T, p: T -> bool, expected: openArray[string] = [
         fail[T](quoted c, expected, state, message = "satisfyWith")
     return fail[T]("end of input", expected, state, message = "satisfyWith")
 
-func inClass*(s: auto): (char -> bool) =
-  ## Match any character in a set.
-  return proc(c: char): bool =
-    c in s
-
 func notInClass*(s: auto): (char -> bool) =
   ## Match any character not in a set.
   return proc(c: char): bool =

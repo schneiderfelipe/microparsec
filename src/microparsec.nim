@@ -10,15 +10,17 @@ export Option, some, none
 import results
 export ok, err, isOk, isErr, `==`
 
+import microparsec/characters
 import microparsec/combinators
 import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, identity, compose, optional, inClass, notInClass,
+export Parser, ParseResult, identity, compose, optional, notInClass,
   anyChar, between, ch, satisfy, skip, satisfyWith, peekCh, peekChF, sepBy,
   sepBy1, many, many1, notChar, `<|>`, `<$`, `<*`, `*>`, liftA2, pure, eof,
   flatMap, `>>`, `$`, debugParse, parse, atEnd, setPosition, getPosition,
-  attempt, `<?>`, choice, option, manyTill, skipMany, skipMany1, count, match
+  attempt, `<?>`, choice, option, manyTill, skipMany, skipMany1, count, match,
+  inClass, oneOf, space
 
 func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.
@@ -62,8 +64,3 @@ let
     satisfy(isAlphaAscii, ["letter"])
     ## A `Parser` that consumes a single letter, as recognised by
     ## `isAlphaAscii`.
-
-  space*: Parser[char] =
-    satisfy(isSpaceAscii, ["space"])
-    ## A `Parser` that consumes a single space character, as recognised by
-    ## `isSpaceAscii`.
