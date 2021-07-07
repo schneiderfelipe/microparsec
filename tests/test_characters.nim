@@ -39,16 +39,20 @@ suite "single character parsers":
   test "oneOf":
     let
       vowel = oneOf "aeiou"
-    check vowel.debugParse("foo") == $(unexpected: "\'f\'", expected: newSeq[string]())
+    check vowel.debugParse("foo") == $(unexpected: "\'f\'", expected: newSeq[
+        string]())
     check vowel.debugParse("oo") == $('o', "o")
-    check vowel.debugParse("") == $(unexpected: "end of input", expected: newSeq[string]())
+    check vowel.debugParse("") == $(unexpected: "end of input",
+        expected: newSeq[string]())
 
   test "noneOf":
     let
       consonant = noneOf "aeiou"
     check consonant.debugParse("foo") == $('f', "oo")
-    check consonant.debugParse("oo") == $(unexpected: "\'o\'", expected: newSeq[string]())
-    check consonant.debugParse("") == $(unexpected: "end of input", expected: newSeq[string]())
+    check consonant.debugParse("oo") == $(unexpected: "\'o\'", expected: newSeq[
+        string]())
+    check consonant.debugParse("") == $(unexpected: "end of input",
+        expected: newSeq[string]())
 
   test "space":
     check space.debugParse(" ") == $(' ', "")

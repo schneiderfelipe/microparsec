@@ -38,5 +38,5 @@ let
     ## which satisfies `isSpaceAscii`). Returns the parsed character.
 
   spaces*: Parser[void] =
-    skipMany space <?> "space"
+    skipMany space <?> "white space"
     ## Skips *zero* or more white space characters. See also ``skipMany``.
