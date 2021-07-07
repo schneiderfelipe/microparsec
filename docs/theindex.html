@@ -63,7 +63,7 @@ function main() {
 <div class="document" id="documentId">
   <div class="container">
     <h1 class="title">Index</h1>
-    Modules: <a href="microparsec.html">microparsec</a>, <a href="microparsec/combinators.html">microparsec/combinators</a>, <a href="microparsec/internals.html">microparsec/internals</a>, <a href="microparsec/primitives.html">microparsec/primitives</a>, <a href="microparsec/types.html">microparsec/types</a>.<br/><p /><h2>API symbols</h2>
+    Modules: <a href="microparsec.html">microparsec</a>, <a href="microparsec/characters.html">microparsec/characters</a>, <a href="microparsec/combinators.html">microparsec/combinators</a>, <a href="microparsec/internals.html">microparsec/internals</a>, <a href="microparsec/primitives.html">microparsec/primitives</a>, <a href="microparsec/types.html">microparsec/types</a>.<br/><p /><h2>API symbols</h2>
 <dl><dt><a name="%60%24%60" href="#%60%24%60"><span>`$`:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="types: `$`[T](res: ParseResult[T]): string" href="microparsec/types.html#%24%2CParseResult%5BT%5D">types: `$`[T](res: ParseResult[T]): string</a></li>
@@ -166,7 +166,7 @@ function main() {
           </ul></dd>
 <dt><a name="inClass" href="#inClass"><span>inClass:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="internals: inClass(s: auto): (char -&gt; bool)" href="microparsec/internals.html#inClass%2Cauto">internals: inClass(s: auto): (char -&gt; bool)</a></li>
+          data-doc-search-tag="characters: inClass(cs: auto): (char -&gt; bool)" href="microparsec/characters.html#inClass%2Cauto">characters: inClass(cs: auto): (char -&gt; bool)</a></li>
           </ul></dd>
 <dt><a name="letter" href="#letter"><span>letter:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -204,13 +204,21 @@ function main() {
           <li><a class="reference external"
           data-doc-search-tag="types: newParseState(s: string): ParseState" href="microparsec/types.html#newParseState.t%2Cstring">types: newParseState(s: string): ParseState</a></li>
           </ul></dd>
+<dt><a name="noneOf" href="#noneOf"><span>noneOf:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="characters: noneOf(cs: auto): Parser[char]" href="microparsec/characters.html#noneOf%2Cauto">characters: noneOf(cs: auto): Parser[char]</a></li>
+          </ul></dd>
 <dt><a name="notChar" href="#notChar"><span>notChar:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="internals: notChar(c: char): Parser[char]" href="microparsec/internals.html#notChar%2Cchar">internals: notChar(c: char): Parser[char]</a></li>
           </ul></dd>
 <dt><a name="notInClass" href="#notInClass"><span>notInClass:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="internals: notInClass(s: auto): (char -&gt; bool)" href="microparsec/internals.html#notInClass%2Cauto">internals: notInClass(s: auto): (char -&gt; bool)</a></li>
+          data-doc-search-tag="characters: notInClass(cs: auto): (char -&gt; bool)" href="microparsec/characters.html#notInClass%2Cauto">characters: notInClass(cs: auto): (char -&gt; bool)</a></li>
+          </ul></dd>
+<dt><a name="oneOf" href="#oneOf"><span>oneOf:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="characters: oneOf(cs: auto): Parser[char]" href="microparsec/characters.html#oneOf%2Cauto">characters: oneOf(cs: auto): Parser[char]</a></li>
           </ul></dd>
 <dt><a name="option" href="#option"><span>option:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -304,7 +312,11 @@ function main() {
           </ul></dd>
 <dt><a name="space" href="#space"><span>space:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="microparsec: space" href="microparsec.html#space">microparsec: space</a></li>
+          data-doc-search-tag="characters: space" href="microparsec/characters.html#space">characters: space</a></li>
+          </ul></dd>
+<dt><a name="spaces" href="#spaces"><span>spaces:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="characters: spaces" href="microparsec/characters.html#spaces">characters: spaces</a></li>
           </ul></dd>
 <dt><a name="stepBack" href="#stepBack"><span>stepBack:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -319,7 +331,7 @@ function main() {
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-07-05 02:03:22 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-07-07 00:41:39 UTC</small>
       </div>
     </div>
   </div>

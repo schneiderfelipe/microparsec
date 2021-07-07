@@ -3,4 +3,3 @@ map	microparsec.html#map,Parser[S],	microparsec: map[S, T](parser: Parser[S]; f:
 str	microparsec.html#str,string,string	microparsec: str(s: string; t = &quot;&quot;): Parser[string]	
 digit	microparsec.html#digit	microparsec: digit	
 letter	microparsec.html#letter	microparsec: letter	
-space	microparsec.html#space	microparsec: space	

@@ -124,12 +124,7 @@ function main() {
 <li>
   <a class="reference reference-toplevel" href="#13" id="63">Funcs</a>
   <ul class="simple simple-toc-section">
-      <ul class="simple nested-toc-section">inClass
-      <li><a class="reference" href="#inClass%2Cauto"
-    title="inClass(s: auto): (char -&gt; bool)">inClass,<wbr>auto</a></li>
-
-  </ul>
-  <ul class="simple nested-toc-section">notChar
+      <ul class="simple nested-toc-section">notChar
       <li><a class="reference" href="#notChar%2Cchar"
     title="notChar(c: char): Parser[char]">notChar,<wbr>char</a></li>
 
@@ -160,11 +155,6 @@ function main() {
     title="ch(c: char): Parser[char]">ch,<wbr>char</a></li>
 
   </ul>
-  <ul class="simple nested-toc-section">notInClass
-      <li><a class="reference" href="#notInClass%2Cauto"
-    title="notInClass(s: auto): (char -&gt; bool)">notInClass,<wbr>auto</a></li>
-
-  </ul>
 
   </ul>
 </li>
@@ -190,9 +180,9 @@ function main() {
 
 A <tt class="docutils literal"><span class="pre">Parser</span></tt> that matches any character.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L84"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L74"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L84" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -210,9 +200,9 @@ class="link-seesrc" target="_blank">Source</a>
 <p><strong>Note</strong>: Because this parser does not fail, do not use it with combinators such as <tt class="docutils literal"><span class="pre">many</span></tt>, because such parsers loop until a failure occurs. Careless use will thus result in an infinite loop.</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L100"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L90"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L100" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L90" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="peekChF,ParseState"></a>
@@ -224,9 +214,9 @@ class="link-seesrc" target="_blank">Source</a>
 <p>This is currently called <tt class="docutils literal"><span class="pre">peekCh</span></tt> to avoid conflict with other function, but that will change in the future.</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L114"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L104"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L114" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L104" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -272,28 +262,6 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L52" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="inClass,auto"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#inClass%2Cauto"><span class="Identifier">inClass</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">auto</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><span class="Identifier">char</span> <span class="Operator">-&gt;</span> <span class="Identifier">bool</span><span class="Other">)</span></pre></dt>
-<dd>
-
-Match any character in a set.
-&nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L74"
-class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-<a id="notInClass,auto"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#notInClass%2Cauto"><span class="Identifier">notInClass</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">auto</span><span class="Other">)</span><span class="Other">:</span> <span class="Other">(</span><span class="Identifier">char</span> <span class="Operator">-&gt;</span> <span class="Identifier">bool</span><span class="Other">)</span></pre></dt>
-<dd>
-
-Match any character not in a set.
-&nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L79"
-class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L79" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
 <a id="ch,char"></a>
 <dt><pre><span class="Keyword">func</span> <a href="#ch%2Cchar"><span class="Identifier">ch</span></a><span class="Other">(</span><span class="Identifier">c</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">)</span><span class="Other">:</span> <a href="types.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">char</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">inline</span><span class="Other">,</span> <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
@@ -302,9 +270,9 @@ class="link-seesrc" target="_blank">Source</a>
 <p><strong>Note</strong>: This function is called <tt class="docutils literal"><span class="pre">char</span></tt> in Parsec, but this conflicts with the type <tt class="docutils literal"><span class="pre">char</span></tt> in Nim. As such, its name might change any time soon if I find a better one.</p>
 
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L88"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L78"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L88" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L78" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="notChar,char"></a>
@@ -313,9 +281,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 Create a <tt class="docutils literal"><span class="pre">Parser</span></tt> that matches any character except the given one.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L96"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L86"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L96" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L86" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="match,Parser[T]"></a>
@@ -324,9 +292,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 A <tt class="docutils literal"><span class="pre">Parser</span></tt> that returns both the result of a parse and the portion of the input that was consumed while it was being parsed.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L125"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/internals.nim#L115"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L125" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/internals.nim#L115" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -339,7 +307,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-07-05 02:03:22 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-07-07 00:41:38 UTC</small>
       </div>
     </div>
   </div>

@@ -1,0 +1,6 @@
+inClass	microparsec/characters.html#inClass,auto	characters: inClass(cs: auto): (char -&gt; bool)	
+notInClass	microparsec/characters.html#notInClass,auto	characters: notInClass(cs: auto): (char -&gt; bool)	
+oneOf	microparsec/characters.html#oneOf,auto	characters: oneOf(cs: auto): Parser[char]	
+noneOf	microparsec/characters.html#noneOf,auto	characters: noneOf(cs: auto): Parser[char]	
+space	microparsec/characters.html#space	characters: space	
+spaces	microparsec/characters.html#spaces	characters: spaces	

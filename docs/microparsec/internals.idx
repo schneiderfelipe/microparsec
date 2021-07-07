@@ -1,8 +1,6 @@
 satisfy	microparsec/internals.html#satisfy,,openArray[string]	internals: satisfy(p: char -&gt; bool; expected: openArray[string] = []): Parser[char]	
 skip	microparsec/internals.html#skip,,openArray[string]	internals: skip(p: char -&gt; bool; expected: openArray[string] = []): Parser[void]	
 satisfyWith	microparsec/internals.html#satisfyWith,,,openArray[string]	internals: satisfyWith[T](f: char -&gt; T; p: T -&gt; bool; expected: openArray[string] = []): Parser[\n    T]	
-inClass	microparsec/internals.html#inClass,auto	internals: inClass(s: auto): (char -&gt; bool)	
-notInClass	microparsec/internals.html#notInClass,auto	internals: notInClass(s: auto): (char -&gt; bool)	
 anyChar	microparsec/internals.html#anyChar	internals: anyChar	
 ch	microparsec/internals.html#ch,char	internals: ch(c: char): Parser[char]	
 notChar	microparsec/internals.html#notChar,char	internals: notChar(c: char): Parser[char]	
