@@ -15,12 +15,12 @@ import microparsec/combinators
 import microparsec/internals
 import microparsec/primitives
 import microparsec/types
-export Parser, ParseResult, identity, compose, optional, notInClass,
+export Parser, ParseResult, identity, compose, optional,
   anyChar, between, ch, satisfy, skip, satisfyWith, peekCh, peekChF, sepBy,
   sepBy1, many, many1, notChar, `<|>`, `<$`, `<*`, `*>`, liftA2, pure, eof,
   flatMap, `>>`, `$`, debugParse, parse, atEnd, setPosition, getPosition,
   attempt, `<?>`, choice, option, manyTill, skipMany, skipMany1, count, match,
-  inClass, oneOf, space
+  inClass, notInClass, oneOf, noneOf, space
 
 func map*[S, T](parser: Parser[S], f: S -> T): Parser[T] {.inline.} =
   ## Apply a function to the result of a `Parser`.

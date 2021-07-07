@@ -23,12 +23,6 @@ suite "basic character parsers":
     check letter.debugParse("1hello") == $(unexpected: "\'1\'", expected: @[
         "letter"])
 
-  test "space":
-    check space.debugParse(" ") == $(' ', "")
-    check space.debugParse("\t") == $('\t', "")
-    check space.debugParse("hello") == $(unexpected: "\'h\'", expected: @[
-        "space"])
-
   test "str":
     let p = str("hello")
     check p.debugParse("hello world") == $("hello", " world")
