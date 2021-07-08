@@ -103,7 +103,13 @@ function main() {
       <li><a class="reference" href="#space"
     title="space: Parser[char] = satisfy(isSpaceAscii, [&quot;space&quot;])">space</a></li>
   <li><a class="reference" href="#spaces"
-    title="spaces: Parser[void] = skipMany space &lt;?&gt; &quot;white space&quot;">spaces</a></li>
+    title="spaces: Parser[void] = skipMany(space) &lt;?&gt; &quot;white space&quot;">spaces</a></li>
+  <li><a class="reference" href="#newline"
+    title="newline: Parser[char] = ch(&apos;\n&apos;) &lt;?&gt; &quot;lf new-line&quot;">newline</a></li>
+  <li><a class="reference" href="#crlf"
+    title="crlf: Parser[char] = ch(&apos;\c&apos;) *&gt; ch(&apos;\n&apos;) &lt;?&gt; &quot;crlf new-line&quot;">crlf</a></li>
+  <li><a class="reference" href="#endOfLine"
+    title="endOfLine: Parser[char] = newline &lt;|&gt; crlf &lt;?&gt; &quot;new-line&quot;">endOfLine</a></li>
 
   </ul>
 </li>
@@ -144,7 +150,7 @@ function main() {
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="combinators.html">combinators</a>, <a class="reference external" href="internals.html">internals</a>, <a class="reference external" href="types.html">types</a>
+<a class="reference external" href="combinators.html">combinators</a>, <a class="reference external" href="internals.html">internals</a>, <a class="reference external" href="primitives.html">primitives</a>, <a class="reference external" href="types.html">types</a>
 </dl></div>
 <div class="section" id="9">
 <h1><a class="toc-backref" href="#9">Lets</a></h1>
@@ -155,20 +161,53 @@ function main() {
 
 A <tt class="docutils literal"><span class="pre">Parser</span></tt> that consumes a single white space character (any character which satisfies <tt class="docutils literal"><span class="pre">isSpaceAscii</span></tt>). Returns the parsed character.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L35"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L36"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L35" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L36" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="spaces"></a>
-<dt><pre><a href="characters.html#spaces"><span class="Identifier">spaces</span></a><span class="Other">:</span> <a href="types.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">skipMany</span> <a href="characters.html#space"><span class="Identifier">space</span></a> <span class="Operator">&lt;?&gt;</span> <span class="StringLit">&quot;white space&quot;</span></pre></dt>
+<dt><pre><a href="characters.html#spaces"><span class="Identifier">spaces</span></a><span class="Other">:</span> <a href="types.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">void</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">skipMany</span><span class="Other">(</span><a href="characters.html#space"><span class="Identifier">space</span></a><span class="Other">)</span> <span class="Operator">&lt;?&gt;</span> <span class="StringLit">&quot;white space&quot;</span></pre></dt>
 <dd>
 
 Skips <em>zero</em> or more white space characters. See also <tt class="docutils literal"><span class="pre">skipMany</span></tt>.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L40"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L41"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L40" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L41" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="newline"></a>
+<dt><pre><a href="characters.html#newline"><span class="Identifier">newline</span></a><span class="Other">:</span> <a href="types.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">char</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">ch</span><span class="Other">(</span><span class="CharLit">'\n'</span><span class="Other">)</span> <span class="Operator">&lt;?&gt;</span> <span class="StringLit">&quot;lf new-line&quot;</span></pre></dt>
+<dd>
+
+Parses a newline character (<tt class="docutils literal"><span class="pre">'n'</span></tt>). Returns a newline character.
+&nbsp;&nbsp;<a
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L45"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L45" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="crlf"></a>
+<dt><pre><a href="characters.html#crlf"><span class="Identifier">crlf</span></a><span class="Other">:</span> <a href="types.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">char</span><span class="Other">]</span> <span class="Other">=</span> <span class="Identifier">ch</span><span class="Other">(</span><span class="CharLit">'\c'</span><span class="Other">)</span> <span class="Operator">*&gt;</span> <span class="Identifier">ch</span><span class="Other">(</span><span class="CharLit">'\n'</span><span class="Other">)</span> <span class="Operator">&lt;?&gt;</span> <span class="StringLit">&quot;crlf new-line&quot;</span></pre></dt>
+<dd>
+
+Parses a carriage return character (<tt class="docutils literal"><span class="pre">'r'</span></tt>) followed by a newline character (<tt class="docutils literal"><span class="pre">'n'</span></tt>). Returns a newline character.
+&nbsp;&nbsp;<a
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L49"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L49" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="endOfLine"></a>
+<dt><pre><a href="characters.html#endOfLine"><span class="Identifier">endOfLine</span></a><span class="Other">:</span> <a href="types.html#Parser"><span class="Identifier">Parser</span></a><span class="Other">[</span><span class="Identifier">char</span><span class="Other">]</span> <span class="Other">=</span> <a href="characters.html#newline"><span class="Identifier">newline</span></a> <span class="Operator">&lt;|&gt;</span> <a href="characters.html#crlf"><span class="Identifier">crlf</span></a> <span class="Operator">&lt;?&gt;</span> <span class="StringLit">&quot;new-line&quot;</span></pre></dt>
+<dd>
+
+Parses a CRLF (see <tt class="docutils literal"><span class="pre">crlf</span></tt>) or LF (see <tt class="docutils literal"><span class="pre">newline</span></tt>) end-of-line. Returns a newline character (<tt class="docutils literal"><span class="pre">'n'</span></tt>).
+&nbsp;&nbsp;<a
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L54"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L54" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -182,9 +221,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 Match any character in a set.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L10"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L11"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L10" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L11" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="notInClass,auto"></a>
@@ -193,9 +232,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 Match any character not in a set.
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L15"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L16"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L15" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L16" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="oneOf,auto"></a>
@@ -206,9 +245,9 @@ A <tt class="docutils literal"><span class="pre">Parser</span></tt> that succeed
 <p><strong class="examples_text">Example:</strong></p>
 <pre class="listing"><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">vowel</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">oneOf</span><span class="Whitespace"> </span><span class="StringLit">&quot;aeiou&quot;</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L20"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L21"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L20" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L21" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="noneOf,auto"></a>
@@ -219,9 +258,9 @@ As the dual of <tt class="docutils literal"><span class="pre">oneOf</span></tt>,
 <p><strong class="examples_text">Example:</strong></p>
 <pre class="listing"><span class="Keyword">let</span><span class="Whitespace"> </span><span class="Identifier">consonant</span><span class="Whitespace"> </span><span class="Operator">=</span><span class="Whitespace"> </span><span class="Identifier">noneOf</span><span class="Whitespace"> </span><span class="StringLit">&quot;aeiou&quot;</span></pre>
 &nbsp;&nbsp;<a
-href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L27"
+href="https://github.com/schneiderfelipe/microparsec/tree/master/src/microparsec/characters.nim#L28"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L27" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/schneiderfelipe/microparsec/edit/devel/src/microparsec/characters.nim#L28" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -234,7 +273,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2021-07-07 00:45:37 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2021-07-08 02:47:55 UTC</small>
       </div>
     </div>
   </div>

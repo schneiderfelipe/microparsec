@@ -5,6 +5,7 @@ import sugar
 
 import combinators
 import internals
+import primitives
 import types
 
 func inClass*(cs: auto): (char -> bool) =
@@ -38,5 +39,19 @@ let
     ## which satisfies `isSpaceAscii`). Returns the parsed character.
 
   spaces*: Parser[void] =
-    skipMany space <?> "white space"
+    skipMany(space) <?> "white space"
     ## Skips *zero* or more white space characters. See also ``skipMany``.
+
+  newline*: Parser[char] =
+    ch('\n') <?> "lf new-line"
+    ## Parses a newline character (`'\n'`). Returns a newline character.
+
+  crlf*: Parser[char] =
+    ch('\r') *> ch('\n') <?> "crlf new-line"
+    ## Parses a carriage return character (`'\r'`) followed by a newline
+    ## character (`'\n'`). Returns a newline character.
+
+  endOfLine*: Parser[char] =
+    newline <|> crlf <?> "new-line"
+    ## Parses a CRLF (see ``crlf``) or LF (see ``newline``) end-of-line.
+    ## Returns a newline character (`'\n'`).

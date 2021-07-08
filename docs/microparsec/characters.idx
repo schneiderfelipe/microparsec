@@ -4,3 +4,6 @@ oneOf	microparsec/characters.html#oneOf,auto	characters: oneOf(cs: auto): Parser
 noneOf	microparsec/characters.html#noneOf,auto	characters: noneOf(cs: auto): Parser[char]	
 space	microparsec/characters.html#space	characters: space	
 spaces	microparsec/characters.html#spaces	characters: spaces	
+newline	microparsec/characters.html#newline	characters: newline	
+crlf	microparsec/characters.html#crlf	characters: crlf	
+endOfLine	microparsec/characters.html#endOfLine	characters: endOfLine	
