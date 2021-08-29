@@ -234,7 +234,7 @@ suite "parser combinators":
   test "<*":
     let p = ch('a') <* ch('-')
     check p.debugParse("a-") == $('a', "")
-    check p.debugParse("aa-") == $('a', "a-")
+    check p.debugParse("aa-") == $(unexpected: "\'a\'", expected: @["\'-\'"])
     check p.debugParse("b-") == $(unexpected: "\'b\'", expected: @["\'a\'"])
     check p.debugParse("-") == $(unexpected: "\'-\'", expected: @["\'a\'"])
     check p.debugParse("") == $(unexpected: "end of input", expected: @[

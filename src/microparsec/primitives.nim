@@ -97,10 +97,14 @@ func `<$`*[S, T](x: T, parser: Parser[S]): Parser[T] {.inline.} =
   parser.map constant[S, T]x
 
 func `<*`*[T, S](parser0: Parser[T], parser1: Parser[S]): Parser[T] {.inline.} =
-  return func(state: ParseState): ParseResult[T] =
-    result = parser0 state
-    if result.isOk:
-      discard parser1 state
+  return proc(state: ParseState): ParseResult[T] =
+             let r0: ParseResult[T] = parser0 state
+             if r0.isOk:
+               let r1: ParseResult[S] = parser1 state
+               return if r1.isOk: r0
+                      else: fail[T](r1)
+             else:
+               return r0
 
 func `*>`*[S, T](parser0: Parser[S], parser1: Parser[T]): Parser[T] {.inline.} =
   return func(state: ParseState): ParseResult[T] =
