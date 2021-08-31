@@ -17,6 +17,7 @@ let p = between(
 )
 echo p.parse("{hello\n world?}")
 ```
+
 ```
 Failed reading: satisfy
 
@@ -33,7 +34,7 @@ Microparsec is a pure
 adaptation of
 [Parsec](https://github.com/haskell/parsec),
 the popular
-[monadic](https://en.wikipedia.org/wiki/Monad_(functional_programming))
+[monadic](<https://en.wikipedia.org/wiki/Monad_(functional_programming)>)
 parser combinator library for
 [Haskell](https://www.haskell.org/) by
 [Daan Leijen](https://www.microsoft.com/en-us/research/people/daan/),
@@ -50,14 +51,14 @@ Microparsec supports Nim 1.2.6+ and can be installed using [Nimble](https://gith
 
 ## Some references
 
-- Leijen, Daan & Meijer, Erik. (2001).
-  [**Parsec: Direct Style Monadic Parser Combinators For The Real World**](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf).
-- Holden, Daniel. (2014).
-  [**You could have invented Parser Combinators**](http://theorangeduck.com/page/you-could-have-invented-parser-combinators).
+-   Leijen, Daan & Meijer, Erik. (2001).
+    [**Parsec: Direct Style Monadic Parser Combinators For The Real World**](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/parsec-paper-letter.pdf).
+-   Holden, Daniel. (2014).
+    [**You could have invented Parser Combinators**](http://theorangeduck.com/page/you-could-have-invented-parser-combinators).
 
 ## Inspiring projects
 
-- [Attoparsec](https://github.com/haskell/attoparsec) (Haskell)
-- [Megaparsec](https://github.com/mrkkrp/megaparsec) (Haskell)
-- [Parsec](https://github.com/haskell/parsec) (Haskell)
+-   [Attoparsec](https://github.com/haskell/attoparsec) (Haskell)
+-   [Megaparsec](https://github.com/mrkkrp/megaparsec) (Haskell)
+-   [Parsec](https://github.com/haskell/parsec) (Haskell)
 <!-- - [FParsec](http://www.quanttec.com/fparsec/) (F#) -->
